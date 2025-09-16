@@ -1,0 +1,268 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Book Store</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="css/styles.css">
+    <link rel="icon" href="images/favicon.ico">
+    <meta name="description" content="Book Store demo homepage">
+</head>
+<body>
+    <header class="site-header">
+        <div class="container header-top">
+            <a class="logo" href="#">Book Store</a>
+            <nav class="main-nav" aria-label="Main Menu">
+                <ul id="nav-list">
+                    <li><a href="#all-books">All Books</a></li>
+                    <li><a href="#new-arrival">New Arrival</a></li>
+                    <li><a href="#best-seller">Best Seller</a></li>
+                    <li><a href="#editors-pick">Editors Pick</a></li>
+                    <li><a href="#about">About</a></li>
+                    <li><a href="#contact">Contact</a></li>
+                </ul>
+            </nav>
+        </div>
+
+        <section class="hero" aria-label="Latest Books">
+            <div class="container hero-grid">
+                <div class="hero-copy">
+                    <p class="eyebrow">Latest Books</p>
+                    <h1>Bạn chỉ còn một cuốn sách nữa là có tâm trạng tốt</h1>
+                    <p class="subhead">Nemo enim ipsam voluptatem quia voluptas sit aut odit aut fugit, sed quia consequuntur magni dolores eos qui ratione voluptatem sequi nesciunt.</p>
+                    <a class="btn primary" href="#discover">Discover Now</a>
+                </div>
+                <div class="hero-slider" role="region" aria-roledescription="carousel" aria-label="Hero Covers">
+                    <div class="slides">
+                        <img src="images/hero-cover1.jpg" alt="Hero cover 1">
+                        <img src="images/hero-cover2.jpg" alt="Hero cover 2">
+                        <img src="images/hero-cover3.jpg" alt="Hero cover 3">
+                        <img src="images/hero-cover4.jpg" alt="Hero cover 4">
+                    </div>
+                </div>
+            </div>
+        </section>
+    </header>
+
+    <main>
+        <section id="discover" class="discover section-pad">
+            <div class="container">
+                <h2>Discover Your New Book</h2>
+                <p class="section-lead">Congue, gravida placeat nibh sunt semper elementum anim Integer lectus debitis auctor.</p>
+                <div class="product-grid">
+                    <!-- 8 product cards -->
+                    <div class="product-card">
+                        <img src="images/book1.jpg" alt="Cyber Angel">
+                        <h3>Cyber Angel</h3>
+                        <div class="price">$18.50</div>
+                        <button class="btn add-to-cart">Add to cart</button>
+                    </div>
+                    <div class="product-card">
+                        <img src="images/book2.jpg" alt="Ark Forging">
+                        <h3>Ark Forging</h3>
+                        <div class="price">$20.00</div>
+                        <button class="btn add-to-cart">Add to cart</button>
+                    </div>
+                    <div class="product-card">
+                        <img src="images/book3.jpg" alt="2024 Sanctuary">
+                        <h3>2024 Sanctuary</h3>
+                        <div class="price">$17.00</div>
+                        <button class="btn add-to-cart">Add to cart</button>
+                    </div>
+                    <div class="product-card">
+                        <img src="images/book4.jpg" alt="Feugiat Maecenas">
+                        <h3>Feugiat Maecenas</h3>
+                        <div class="price">$14.00</div>
+                        <button class="btn add-to-cart">Add to cart</button>
+                    </div>
+                    <div class="product-card">
+                        <img src="images/book5.jpg" alt="Liar of Dreams">
+                        <h3>Liar of Dreams</h3>
+                        <div class="price">$20.00</div>
+                        <button class="btn add-to-cart">Add to cart</button>
+                    </div>
+                    <div class="product-card">
+                        <img src="images/book6.jpg" alt="Mists of Algorab">
+                        <h3>Mists of Algorab</h3>
+                        <div class="price">$18.00</div>
+                        <button class="btn add-to-cart">Add to cart</button>
+                    </div>
+                    <div class="product-card">
+                        <img src="images/book7.jpg" alt="Now You See Me">
+                        <h3>Now You See Me</h3>
+                        <div class="price">$16.00</div>
+                        <button class="btn add-to-cart">Add to cart</button>
+                    </div>
+                    <div class="product-card">
+                        <img src="images/book8.jpg" alt="The Born of APLEX">
+                        <h3>The Born of APLEX</h3>
+                        <div class="price">$20.00</div>
+                        <button class="btn add-to-cart">Add to cart</button>
+                    </div>
+                </div>
+                <div class="center">
+                    <a class="btn outline" href="#all-books">Discover more books</a>
+                </div>
+            </div>
+        </section>
+
+        <section id="categories" class="categories section-pad alt">
+            <div class="container">
+                <h2>Choose By Category</h2>
+                <div class="category-grid">
+                    <a href="#" class="category">Religion & Spirituality</a>
+                    <a href="#" class="category">Teen & Young Adult</a>
+                    <a href="#" class="category">Literature & Fiction</a>
+                    <a href="#" class="category">Crime & Suspense</a>
+                    <a href="#" class="category">Biographies & Memoirs</a>
+                    <a href="#" class="category">Mystery & Thriller</a>
+                </div>
+                <div class="center">
+                    <a class="btn outline" href="#">See all categories</a>
+                </div>
+            </div>
+        </section>
+
+        <section id="best-seller" class="bestseller section-pad">
+            <div class="container bestseller-grid">
+                <div class="bestseller-copy">
+                    <p class="eyebrow">World’s Best Seller</p>
+                    <h2>Below Zero</h2>
+                    <p>Nemo enim ipsam voluptatem quia voluptas sit aspernatur aut odit aut fugit sed quia consequuntur magni dolores eos qui ratione voluptatem sequi nesciunt.</p>
+                    <a class="btn primary" href="#">Buy Now</a>
+                </div>
+                <div class="bestseller-cover">
+                    <img src="images/bestseller.jpg" alt="Below Zero cover">
+                </div>
+            </div>
+        </section>
+
+        <section id="author" class="author section-pad alt">
+            <div class="container author-grid">
+                <div class="author-photo">
+                    <img src="images/author.jpg" alt="Melissa Miner portrait">
+                </div>
+                <div class="author-copy">
+                    <p class="eyebrow">Author of the Month</p>
+                    <h3>Melissa Miner</h3>
+                    <p>Nemo enim ipsam voluptatem quia voluptas sit aspernatur aut odit aut fugit sed quia consequuntur magni dolores eos qui ratione voluptatem sequi nesciunt.</p>
+                    <a class="btn outline" href="#">Read more</a>
+                </div>
+            </div>
+        </section>
+
+        <section id="editors-pick" class="editors section-pad">
+            <div class="container">
+                <h2>Picked By Editors</h2>
+                <p class="section-lead">Congue, gravida placeat nibh sunt semper elementum anim Integer lectus debitis auctor.</p>
+                <div class="product-grid four">
+                    <div class="product-card">
+                        <img src="images/pick1.jpg" alt="Game Of Spades">
+                        <h3>Game Of Spades</h3>
+                        <div class="price">$18.50</div>
+                        <button class="btn add-to-cart">Add to cart</button>
+                    </div>
+                    <div class="product-card">
+                        <img src="images/pick2.jpg" alt="I’ll Catch You">
+                        <h3>I’ll Catch You</h3>
+                        <div class="price">$15.75</div>
+                        <button class="btn add-to-cart">Add to cart</button>
+                    </div>
+                    <div class="product-card">
+                        <img src="images/pick3.jpg" alt="Into The Wild">
+                        <h3>Into The Wild</h3>
+                        <div class="price">$20.35</div>
+                        <button class="btn add-to-cart">Add to cart</button>
+                    </div>
+                    <div class="product-card">
+                        <img src="images/pick4.jpg" alt="This Dark Road To Mercy">
+                        <h3>This Dark Road To Mercy</h3>
+                        <div class="price">$24.00</div>
+                        <button class="btn add-to-cart">Add to cart</button>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <section class="benefits section-pad alt">
+            <div class="container benefits-grid">
+                <div class="benefit"><strong>Worldwide Free Shipping</strong><p>Justo vestibulum risus imperdiet consectetur.</p></div>
+                <div class="benefit"><strong>Free Returns For All</strong><p>Justo vestibulum risus imperdiet consectetur.</p></div>
+                <div class="benefit"><strong>10% Student Discounts</strong><p>Justo vestibulum risus imperdiet consectetur.</p></div>
+                <div class="benefit"><strong>Gift Vouchers</strong><p>Justo vestibulum risus imperdiet consectetur.</p></div>
+            </div>
+        </section>
+
+        <section class="partner-cta section-pad">
+            <div class="container partner-grid">
+                <div class="partner-copy">
+                    <p class="eyebrow">Become Our Partner</p>
+                    <h2>Self - Publishing And Book Writing</h2>
+                    <p>Nemo enim ipsam voluptatem quia voluptas sit aspernatur aut odit aut fugit sed quia consequuntur magni dolores eos qui ratione voluptatem sequi nesciunt.</p>
+                    <a class="btn primary" href="#contact">Contact Now</a>
+                </div>
+                <div class="partner-illustration">
+                    <img src="images/partner.jpg" alt="Self publishing">
+                </div>
+            </div>
+        </section>
+
+        <section class="newsletter section-pad alt">
+            <div class="container newsletter-grid">
+                <div>
+                    <h2>Join Book Lovers Community and Get Latest Updates</h2>
+                </div>
+                <form class="subscribe-form" id="subscribe-form">
+                    <label for="email" class="visually-hidden">Your Email Address</label>
+                    <input id="email" name="email" type="email" placeholder="Your Email Address" required>
+                    <button class="btn primary" type="submit">Subscribe</button>
+                    <span class="form-status" aria-live="polite"></span>
+                </form>
+            </div>
+        </section>
+    </main>
+
+    <footer class="site-footer">
+        <div class="container footer-grid">
+            <div class="footer-col">
+                <h4>Quick Links</h4>
+                <ul>
+                    <li><a href="#">Home</a></li>
+                    <li><a href="#all-books">Books</a></li>
+                    <li><a href="#">Deals</a></li>
+                    <li><a href="#about">About</a></li>
+                    <li><a href="#contact">Contact</a></li>
+                </ul>
+            </div>
+            <div class="footer-col">
+                <h4>Explore</h4>
+                <ul>
+                    <li><a href="#best-seller">Bestsellers</a></li>
+                    <li><a href="#">On Sale</a></li>
+                    <li><a href="#editors-pick">Editors Pick</a></li>
+                    <li><a href="#">Best Of 2022</a></li>
+                    <li><a href="#">Featured</a></li>
+                </ul>
+            </div>
+            <div class="footer-col">
+                <h4>Help</h4>
+                <ul>
+                    <li><a href="#">Track Order</a></li>
+                    <li><a href="#">Delivery & Returns</a></li>
+                    <li><a href="#">FAQs</a></li>
+                    <li><a href="#">Community</a></li>
+                </ul>
+            </div>
+        </div>
+        <div class="container footer-bottom">
+            <p>Copyright © 2025 Book Worms | Powered by Book Worms</p>
+        </div>
+    </footer>
+
+    
+</body>
+</html>
+
