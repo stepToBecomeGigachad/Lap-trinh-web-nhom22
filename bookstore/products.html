@@ -1,0 +1,220 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Book Details | Book Store</title>
+    <link rel="stylesheet" href="css/styles.css">
+    <link rel="icon" href="images/favicon.ico">
+</head>
+<body>
+    <header class="site-header">
+        <div class="container header-top">
+            <a class="logo" href="index.html">Book Store</a>
+            <nav class="main-nav" aria-label="Main Menu">
+                <ul id="nav-list">
+                    <li><a href="index.html#all-books">All Books</a></li>
+                    <li><a href="index.html#new-arrival">New Arrival</a></li>
+                    <li><a href="index.html#best-seller">Best Seller</a></li>
+                    <li><a href="index.html#editors-pick">Editors Pick</a></li>
+                    <li><a href="index.html#about">About</a></li>
+                    <li><a href="index.html#contact">Contact</a></li>
+                </ul>
+            </nav>
+        </div>
+    </header>
+    <main>
+        <section class="section-pad">
+            <div class="container">
+                <h1>Book Details</h1>
+                <div class="product-detail-grid">
+                    <div class="product-detail-image">
+                        <img id="book-image" src="images/crypto.jpg" alt="Book cover">
+                    </div>
+                    <div class="product-detail-info">
+                        <h2 id="book-title">An Introduction to Mathematical Cryptography</h2>
+                        <div class="price" id="book-price">$18.50</div>
+                        <p id="book-desc">
+                            A comprehensive introduction to modern cryptography, covering the mathematics behind cryptographic protocols and algorithms.
+                        </p>
+                        <button class="btn primary">Add to cart</button>
+                    </div>
+                </div>
+                <hr>
+                <h3>Other Books</h3>
+                <div class="product-grid four">
+                    <div class="product-card" onclick="showBook(0)">
+                        <img src="images/crypto.jpg" alt="An Introduction to Mathematical Cryptography">
+                        <h3>An Introduction to Mathematical Cryptography</h3>
+                        <div class="price">$18.50</div>
+                    </div>
+                    <div class="product-card" onclick="showBook(1)">
+                        <img src="images/deception.jpg" alt="The art of deception">
+                        <h3>The art of deception</h3>
+                        <div class="price">$20.00</div>
+                    </div>
+                    <div class="product-card" onclick="showBook(2)">
+                        <img src="images/dos.jpg" alt="DDoS: Understanding Real-Life Attacks and Mitigation Strategies">
+                        <h3>DDoS: Understanding Real-Life Attacks and Mitigation Strategies</h3>
+                        <div class="price">$17.00</div>
+                    </div>
+                    <div class="product-card" onclick="showBook(3)">
+                        <img src="images/tcp.jpg" alt="TCP/IP Illustrated, Volume 1">
+                        <h3>TCP/IP Illustrated, Volume 1</h3>
+                        <div class="price">$14.00</div>
+                    </div>
+                    <div class="product-card" onclick="showBook(4)">
+                        <img src="images/quantum_optics.jpg" alt="Introductory Quantum optics - Second edition">
+                        <h3>Introductory Quantum optics - Second edition</h3>
+                        <div class="price">$20.00</div>
+                    </div>
+                    <div class="product-card" onclick="showBook(5)">
+                        <img src="images/Hacking-The Art of Exploitation-2nd Edition.jpg" alt="Hacking: The Art of Exploitation, 2nd Edition">
+                        <h3>Hacking: The Art of Exploitation, 2nd Edition</h3>
+                        <div class="price">$21.99</div>
+                    </div>
+                    <div class="product-card" onclick="showBook(6)">
+                        <img src="images/invisibility.jpg" alt="The Art of Invisibility">
+                        <h3>The Art of Invisibility</h3>
+                        <div class="price">$21.99</div>
+                    </div>
+                    <div class="product-card" onclick="showBook(7)">
+                        <img src="images/Cult-of-the-dead-cow.jpg" alt="Cult of the Dead Cow: How the Original Hacking Supergroup Might Just Save the World">
+                        <h3>Cult of the Dead Cow: How the Original Hacking Supergroup Might Just Save the World</h3>
+                        <div class="price">$28.00</div>
+                    </div>
+                </div>
+            </div>
+        </section>
+    </main>
+    <footer class="site-footer">
+        <div class="container footer-grid">
+            <div class="footer-col">
+                <h4>Quick Links</h4>
+                <ul>
+                    <li><a href="index.html">Home</a></li>
+                    <li><a href="index.html#all-books">Books</a></li>
+                    <li><a href="#">Deals</a></li>
+                    <li><a href="index.html#about">About</a></li>
+                    <li><a href="index.html#contact">Contact</a></li>
+                </ul>
+            </div>
+            <div class="footer-col">
+                <h4>Explore</h4>
+                <ul>
+                    <li><a href="index.html#best-seller">Bestsellers</a></li>
+                    <li><a href="#">On Sale</a></li>
+                    <li><a href="index.html#editors-pick">Editors Pick</a></li>
+                    <li><a href="#">Best Of 2022</a></li>
+                    <li><a href="#">Featured</a></li>
+                </ul>
+            </div>
+            <div class="footer-col">
+                <h4>Help</h4>
+                <ul>
+                    <li><a href="#">Track Order</a></li>
+                    <li><a href="#">Delivery & Returns</a></li>
+                    <li><a href="#">FAQs</a></li>
+                    <li><a href="#">Community</a></li>
+                </ul>
+            </div>
+        </div>
+        <div class="container footer-bottom">
+            <p>Copyright © 2025 Book Worms | Powered by Book Worms</p>
+        </div>
+    </footer>
+    <script>
+    // Danh sách sách (có thể mở rộng thêm mô tả chi tiết)
+    const books = [
+        {
+            image: "images/crypto.jpg",
+            title: "An Introduction to Mathematical Cryptography",
+            price: "$18.50",
+            desc: "A comprehensive introduction to modern cryptography, covering the mathematics behind cryptographic protocols and algorithms."
+        },
+        {
+            image: "images/deception.jpg",
+            title: "The art of deception",
+            price: "$20.00",
+            desc: "A classic book by Kevin Mitnick about social engineering and the human element in security."
+        },
+        {
+            image: "images/dos.jpg",
+            title: "DDoS: Understanding Real-Life Attacks and Mitigation Strategies",
+            price: "$17.00",
+            desc: "Learn about DDoS attacks, real-world examples, and how to defend against them."
+        },
+        {
+            image: "images/tcp.jpg",
+            title: "TCP/IP Illustrated, Volume 1",
+            price: "$14.00",
+            desc: "A detailed guide to TCP/IP networking protocols, ideal for students and professionals."
+        },
+        {
+            image: "images/quantum_optics.jpg",
+            title: "Introductory Quantum optics - Second edition",
+            price: "$20.00",
+            desc: "An accessible introduction to quantum optics, suitable for beginners and advanced readers."
+        },
+        {
+            image: "images/Hacking-The Art of Exploitation-2nd Edition.jpg",
+            title: "Hacking: The Art of Exploitation, 2nd Edition",
+            price: "$21.99",
+            desc: "A hands-on guide to hacking techniques and computer security, with practical examples."
+        },
+        {
+            image: "images/invisibility.jpg",
+            title: "The Art of Invisibility",
+            price: "$21.99",
+            desc: "Kevin Mitnick's guide to privacy and anonymity in the digital world."
+        },
+        {
+            image: "images/Cult-of-the-dead-cow.jpg",
+            title: "Cult of the Dead Cow: How the Original Hacking Supergroup Might Just Save the World",
+            price: "$28.00",
+            desc: "The story of the legendary hacking group and their impact on cybersecurity."
+        }
+    ];
+
+    // Hàm hiển thị chi tiết sách
+    function showBook(index) {
+        const book = books[index];
+        document.getElementById('book-image').src = book.image;
+        document.getElementById('book-image').alt = book.title;
+        document.getElementById('book-title').textContent = book.title;
+        document.getElementById('book-price').textContent = book.price;
+        document.getElementById('book-desc').textContent = book.desc;
+        window.scrollTo({top: 0, behavior: 'smooth'});
+    }
+    </script>
+    <style>
+    .product-detail-grid {
+        display: flex;
+        gap: 2rem;
+        align-items: flex-start;
+        margin-bottom: 2rem;
+        flex-wrap: wrap;
+    }
+    .product-detail-image img {
+        width: 220px;
+        height: 320px;
+        object-fit: cover;
+        border-radius: 8px;
+        box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+    }
+    .product-detail-info {
+        flex: 1;
+        min-width: 250px;
+    }
+    @media (max-width: 700px) {
+        .product-detail-grid {
+            flex-direction: column;
+            align-items: center;
+        }
+        .product-detail-info {
+            text-align: center;
+        }
+    }
+    </style>
+</body>
+</html>
