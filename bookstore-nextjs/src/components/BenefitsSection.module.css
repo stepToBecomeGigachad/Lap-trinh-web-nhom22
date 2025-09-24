@@ -1,0 +1,47 @@
+.benefits {
+  padding: 100px 0;
+  background: #fafafa;
+}
+
+.container {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 0 24px;
+}
+
+.benefitsGrid { 
+  display: grid; 
+  grid-template-columns: repeat(4, 1fr); 
+  gap: 24px; 
+}
+
+.benefit { 
+  background: #fff; 
+  border: 1px solid var(--border); 
+  border-radius: 12px; 
+  padding: 32px 24px; 
+  text-align: center;
+  transition: all 0.3s ease;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
+}
+
+.benefit:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.12);
+  border-color: var(--accent);
+}
+
+.benefit strong {
+  display: block;
+  font-size: 18px;
+  font-weight: 700;
+  color: var(--primary);
+  margin-bottom: 12px;
+}
+
+.benefit p { 
+  color: var(--muted); 
+  margin: 0; 
+  line-height: 1.6;
+  font-size: 14px;
+}
