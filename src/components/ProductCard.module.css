@@ -1,0 +1,71 @@
+.productCard { 
+  border: 1px solid var(--border); 
+  border-radius: 12px; 
+  padding: 20px; 
+  display: flex; 
+  flex-direction: column; 
+  gap: 16px; 
+  background: #fff; 
+  cursor: pointer;
+  transition: all 0.3s ease;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
+}
+
+.productCard:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.12);
+  border-color: var(--accent);
+}
+
+.productImage {
+  width: 200px;
+  height: 280px;
+  object-fit: cover;
+  display: block;
+  margin: 0 auto 16px auto;
+  border-radius: 8px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+}
+
+.productTitle { 
+  margin: 0; 
+  font-size: 18px; 
+  line-height: 1.4;
+  font-weight: 600;
+  color: var(--primary);
+  text-align: center;
+  min-height: 50px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.price { 
+  color: var(--accent); 
+  font-weight: 700; 
+  font-size: 20px;
+  text-align: center;
+  margin: 8px 0;
+}
+
+.btn { 
+  align-self: center; 
+  background: var(--primary);
+  color: white;
+  border: 1px solid var(--primary);
+  padding: 12px 24px;
+  border-radius: 8px;
+  cursor: pointer;
+  font-weight: 600;
+  transition: all 0.3s ease;
+  font-size: 14px;
+  width: 100%;
+  max-width: 160px;
+}
+
+.btn:hover { 
+  background: var(--accent);
+  border-color: var(--accent);
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+}

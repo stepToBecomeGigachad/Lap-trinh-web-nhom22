@@ -1,0 +1,46 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8" />
+  <link rel="icon" type="image/svg+xml" href="/admin/favicon.png" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <script type="module" crossorigin src="/admin/assets/index-G5Q_BHE4.js"></script>
+  <link rel="stylesheet" crossorigin href="/admin/assets/index-Cp1tcfOg.css">
+</head>
+
+<body class="dark:bg-gray-900">
+  <div id="root"></div>
+  <script>
+    // Make the top-left logo act as a "Book Store" button to the main site.
+    // This runs after the SPA mounts and also observes future renders.
+    (function () {
+      function patchLogo(root) {
+        if (!root) return;
+        // Try to find any element that currently displays "Logo" in the header/aside
+        const candidates = Array.from(root.querySelectorAll('a, div, span'));
+        for (const el of candidates) {
+          const text = (el.textContent || '').trim();
+          if (text === 'Book Store') {
+            el.textContent = 'Book Store';
+            el.style.color = '#111827'; // black-ish
+            el.style.fontWeight = '700';
+            el.style.cursor = 'pointer';
+            el.addEventListener('click', function (e) {
+              e.preventDefault();
+              window.location.href = '/';
+            });
+            break;
+          }
+        }
+      }
+
+      const root = document.getElementById('root');
+      const obs = new MutationObserver(() => patchLogo(root));
+      obs.observe(root, { childList: true, subtree: true });
+      patchLogo(root);
+    })();
+  </script>
+</body>
+
+</html>

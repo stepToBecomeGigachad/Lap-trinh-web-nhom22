@@ -1,0 +1,40 @@
+[
+  {
+    "slug": "an-introduction-to-mathematical-cryptography",
+    "name": "An Introduction to Mathematical Cryptography",
+    "description": "A comprehensive introduction to modern cryptography, covering the mathematics behind cryptographic protocols and algorithms.",
+    "price": 18.5,
+    "brand": "Springer",
+    "category": "security",
+    "image": "/images/crypto.jpg"
+  },
+  {
+    "slug": "the-art-of-deception",
+    "name": "The Art of Deception",
+    "description": "Kevin Mitnick on social engineering and the human element in security.",
+    "price": 20,
+    "salePrice": 17.5,
+    "brand": "Wiley",
+    "category": "security",
+    "image": "/images/deception.jpg"
+  },
+  {
+    "slug": "tcp-ip-illustrated-vol-1",
+    "name": "TCP/IP Illustrated, Volume 1",
+    "description": "A detailed guide to TCP/IP networking protocols.",
+    "price": 14,
+    "brand": "Addison-Wesley",
+    "category": "networking",
+    "image": "/images/tcp.jpg"
+  },
+  {
+    "slug": "ddos-understanding-attacks-and-mitigation",
+    "name": "DDoS: Understanding Real-Life Attacks and Mitigation",
+    "description": "Learn about DDoS attacks, real-world examples, and how to defend against them.",
+    "price": 17,
+    "brand": "Packt",
+    "category": "security",
+    "image": "/images/dos.jpg"
+  }
+]
+
