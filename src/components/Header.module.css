@@ -1,10 +1,10 @@
 /* Header */
 .header { 
   position: static; 
-  background: rgba(255,255,255,.95); 
+  background: #000000; 
   backdrop-filter: saturate(180%) blur(20px); 
-  border-bottom: 1px solid var(--border); 
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+  border-bottom: none;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.4);
 }
 
 .headerTop { 
@@ -21,7 +21,7 @@
 .logo { 
   font-weight: 700; 
   font-size: 24px; 
-  color: var(--primary);
+  color: #ffffff;
 }
 
 .mainNav ul { 
@@ -33,7 +33,7 @@
 }
 
 .mainNav a { 
-  color: var(--muted); 
+  color: #d4d4d8; 
   font-weight: 500; 
   font-size: 16px;
   transition: color 0.3s ease;
@@ -41,7 +41,7 @@
 }
 
 .mainNav a:hover { 
-  color: var(--accent); 
+  color: #ffffff; 
 }
 
 .mainNav a::after {
@@ -51,7 +51,7 @@
   left: 0;
   width: 0;
   height: 2px;
-  background: var(--accent);
+  background: #ffffff;
   transition: width 0.3s ease;
 }
 
@@ -62,7 +62,7 @@
 /* Hero */
 .hero { 
   padding: 60px 0 80px; 
-  background: linear-gradient(135deg, #f8fafc 0%, #ffffff 100%);
+  background: #ffffff;
 }
 
 .heroGrid { 
@@ -80,11 +80,11 @@
   line-height: 1.1; 
   margin: 16px 0 24px; 
   font-weight: 700;
-  color: var(--primary);
+  color: #000000;
 }
 
 .heroCopy .subhead { 
-  color: var(--muted); 
+  color: #52525b; 
   margin: 0 0 32px; 
   font-size: 20px;
   line-height: 1.6;
@@ -94,8 +94,8 @@
   position: relative; 
   overflow: hidden; 
   border-radius: 16px; 
-  border: 1px solid var(--border); 
-  box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
+  border: none;
+  box-shadow: 0 20px 40px rgba(0, 0, 0, 0.2);
 }
 
 .heroSlider .slides { 
@@ -111,7 +111,7 @@
 }
 
 .btnPrimary {
-  background: var(--accent);
+  background: #000000;
   color: white;
   padding: 16px 32px;
   border-radius: 8px;
@@ -119,14 +119,15 @@
   font-weight: 600;
   display: inline-block;
   transition: all 0.3s ease;
-  border: 1px solid var(--accent);
+  border: 2px solid #000000;
   font-size: 16px;
-  box-shadow: 0 4px 12px rgba(14, 165, 233, 0.3);
+  box-shadow: 0 6px 16px rgba(0, 0, 0, 0.25);
 }
 
 .btnPrimary:hover {
   transform: translateY(-2px);
-  box-shadow: 0 6px 20px rgba(14, 165, 233, 0.4);
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.35);
+  background: #1a1a1a;
 }
 
 @media (max-width: 768px) {

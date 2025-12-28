@@ -1,6 +1,7 @@
 export function formatPrice(n) {
   const num = typeof n === 'number' ? n : parseFloat(String(n).replace(/[^\d.]/g, '')) || 0;
-  return `$${num.toFixed(2)}`;
+  // Format as VND: xxx.xxx đ
+  return num.toLocaleString('vi-VN') + ' đ';
 }
 
 export function slugify(text) {

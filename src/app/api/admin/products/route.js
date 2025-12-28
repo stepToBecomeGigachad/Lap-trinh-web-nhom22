@@ -6,7 +6,7 @@ export async function GET(request) {
   const q = (searchParams.get('q') || '').trim();
   const page = parseInt(searchParams.get('page') || '1', 10);
   const pageSize = parseInt(searchParams.get('pageSize') || '20', 10);
-  const where = q ? { name: { contains: q, mode: 'insensitive' } } : {};
+  const where = q ? { name: { contains: q } } : {};
   const total = await prisma.product.count({ where });
   const rows = await prisma.product.findMany({
     where,
@@ -39,8 +39,15 @@ export async function POST(request) {
     const body = await request.json();
     const { slug, name, description = '', price, salePrice, brand, stock = 0, categorySlug, image } = body || {};
     if (!slug || !name || price == null || !categorySlug) {
-      return NextResponse.json({ ok: false, error: 'Missing fields' }, { status: 400 });
+      return NextResponse.json({ ok: false, error: 'Vui lòng điền đầy đủ thông tin' }, { status: 400 });
     }
+
+    // Check if slug already exists
+    const existing = await prisma.product.findUnique({ where: { slug } });
+    if (existing) {
+      return NextResponse.json({ ok: false, error: 'Slug đã tồn tại, vui lòng chọn slug khác' }, { status: 400 });
+    }
+
     const cat = await prisma.category.upsert({
       where: { slug: categorySlug },
       update: {},
@@ -55,7 +62,8 @@ export async function POST(request) {
       select: { id: true }
     });
     return NextResponse.json({ ok: true, id: created.id });
-  } catch {
-    return NextResponse.json({ ok: false, error: 'Server error' }, { status: 500 });
+  } catch (err) {
+    console.error('Create product error:', err);
+    return NextResponse.json({ ok: false, error: err.message || 'Server error' }, { status: 500 });
   }
 }

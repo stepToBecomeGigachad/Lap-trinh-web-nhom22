@@ -16,6 +16,7 @@ export async function GET(_req, { params }) {
       price: p.price,
       salePrice: p.salePrice,
       brand: p.brand,
+      stock: p.stock ?? 0,
       category: p.category?.slug || null,
       image: p.images?.[0]?.url || null,
       images: p.images?.map(i => ({ url: i.url, alt: i.alt })) || [],

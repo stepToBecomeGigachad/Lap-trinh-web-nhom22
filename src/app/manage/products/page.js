@@ -1,45 +1,106 @@
 "use client";
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useState } from 'react';
 import Image from 'next/image';
-import Link from 'next/link';
+import {
+  Plus,
+  Edit2,
+  Trash2,
+  Package,
+  X,
+  Save,
+  ImageIcon,
+} from 'lucide-react';
+import {
+  Card,
+  CardHeader,
+  CardTitle,
+  CardContent,
+} from '../../../components/admin/Card';
+import Button from '../../../components/admin/Button';
+import Input from '../../../components/admin/Input';
+import Select from '../../../components/admin/Select';
+import {
+  Table,
+  TableHeader,
+  TableBody,
+  TableRow,
+  TableHead,
+  TableCell,
+  TableEmpty,
+  TableSkeleton,
+} from '../../../components/admin/Table';
+import Pagination from '../../../components/admin/Pagination';
+import SearchInput from '../../../components/admin/SearchInput';
+import Modal, { ConfirmModal } from '../../../components/admin/Modal';
+import { DropdownMenu, DropdownMenuItem, DropdownMenuDivider } from '../../../components/admin/DropdownMenu';
 
-const vnd = (n) => (Number(n||0)).toLocaleString('vi-VN', {style:'currency', currency:'VND'});
+const vnd = (n) => (Number(n || 0)).toLocaleString('vi-VN') + ' đ';
 
 export default function ManageProductsPage() {
   const [cats, setCats] = useState([]);
   const [items, setItems] = useState([]);
   const [total, setTotal] = useState(0);
   const [page, setPage] = useState(1);
-  const [pageSize, setPageSize] = useState(10);
+  const [pageSize, setPageSize] = useState(50);
   const [q, setQ] = useState('');
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState('');
-  const [form, setForm] = useState({ slug:'', name:'', price:'', salePrice:'', categorySlug:'', image:'', description:'' });
-  const [editing, setEditing] = useState(null); // id being edited
+
+  // Form state
+  const [showAddModal, setShowAddModal] = useState(false);
+  const [form, setForm] = useState({
+    slug: '',
+    name: '',
+    price: '',
+    salePrice: '',
+    categorySlug: '',
+    image: '',
+    description: '',
+  });
+
+  // Edit state
+  const [editingRow, setEditingRow] = useState(null);
+  const [editForm, setEditForm] = useState({});
+
+  // Delete confirm
+  const [deleteConfirm, setDeleteConfirm] = useState(null);
 
   const totalPages = Math.max(1, Math.ceil(total / pageSize));
 
-  const load = async (opts={}) => {
+  const load = async (opts = {}) => {
     const p = opts.page ?? page;
     const ps = opts.pageSize ?? pageSize;
     const qq = opts.q ?? q;
     setLoading(true);
-    const [cRes,pRes] = await Promise.all([
-      cats.length ? Promise.resolve({ok:true, json: async()=>cats}) : fetch('/api/categories'),
-      fetch(`/api/admin/products?q=${encodeURIComponent(qq)}&page=${p}&pageSize=${ps}`)
+    const [cRes, pRes] = await Promise.all([
+      cats.length ? Promise.resolve({ ok: true, json: async () => cats }) : fetch('/api/categories'),
+      fetch(`/api/admin/products?q=${encodeURIComponent(qq)}&page=${p}&pageSize=${ps}`),
     ]);
-    if (cRes.ok && cats.length===0) setCats(await cRes.json());
-    if (pRes.ok) { const d = await pRes.json(); setItems(d.items||[]); setTotal(d.total||0); setPage(d.page||1); setPageSize(d.pageSize||ps); }
+    if (cRes.ok && cats.length === 0) setCats(await cRes.json());
+    if (pRes.ok) {
+      const d = await pRes.json();
+      setItems(d.items || []);
+      setTotal(d.total || 0);
+      setPage(d.page || 1);
+      setPageSize(d.pageSize || ps);
+    }
     setLoading(false);
   };
 
-  useEffect(() => { load({page:1}); }, []);
-  useEffect(() => { const t=setTimeout(()=>load({page:1,q}), 350); return ()=>clearTimeout(t); }, [q]);
+  useEffect(() => {
+    load({ page: 1 });
+  }, []);
+
+  useEffect(() => {
+    const t = setTimeout(() => load({ page: 1, q }), 350);
+    return () => clearTimeout(t);
+  }, [q]);
 
   const createProduct = async (e) => {
     e.preventDefault();
-    setError(''); setSaving(true);
+    setError('');
+    setSaving(true);
     const payload = {
       slug: form.slug.trim(),
       name: form.name.trim(),
@@ -49,144 +110,347 @@ export default function ManageProductsPage() {
       categorySlug: form.categorySlug,
       image: form.image?.trim() || null,
     };
-    const r = await fetch('/api/admin/products', { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify(payload) });
-    const d = await r.json().catch(()=>({}));
+    const r = await fetch('/api/admin/products', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(payload),
+    });
+    const d = await r.json().catch(() => ({}));
     setSaving(false);
-    if (!r.ok || !d?.ok) { setError(d?.error || 'Tạo sản phẩm thất bại'); return; }
-    setForm({ slug:'', name:'', price:'', salePrice:'', categorySlug:'', image:'', description:'' });
-    load({page:1});
+    if (!r.ok || !d?.ok) {
+      setError(d?.error || 'Tạo sản phẩm thất bại');
+      return;
+    }
+    setForm({ slug: '', name: '', price: '', salePrice: '', categorySlug: '', image: '', description: '' });
+    setShowAddModal(false);
+    load({ page: 1 });
   };
 
-  const saveRow = async (row) => {
+  const startEdit = (row) => {
+    setEditingRow(row.id);
+    setEditForm({
+      name: row.name,
+      price: row.price,
+      salePrice: row.salePrice ?? '',
+      stock: row.stock ?? 0,
+      category: row.category || '',
+    });
+  };
+
+  const saveRow = async () => {
+    if (!editingRow) return;
     setSaving(true);
-    const payload = { name: row.name, price: row.price, salePrice: row.salePrice ?? null, stock: row.stock ?? 0, categorySlug: row.category || undefined };
-    const r = await fetch(`/api/admin/products/${row.id}`, { method:'PUT', headers:{'Content-Type':'application/json'}, body: JSON.stringify(payload) });
-    setSaving(false); setEditing(null);
-    if (r.ok) load({page});
+    const payload = {
+      name: editForm.name,
+      price: Number(editForm.price),
+      salePrice: editForm.salePrice === '' ? null : Number(editForm.salePrice),
+      stock: Number(editForm.stock) || 0,
+      categorySlug: editForm.category || undefined,
+    };
+    const r = await fetch(`/api/admin/products/${editingRow}`, {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(payload),
+    });
+    setSaving(false);
+    setEditingRow(null);
+    if (r.ok) load({ page });
   };
 
-  const deleteRow = async (id) => {
-    if (!confirm('Xóa sản phẩm?')) return;
-    const r = await fetch(`/api/admin/products/${id}`, { method:'DELETE' });
-    if (r.ok) load({page});
+  const deleteRow = async () => {
+    if (!deleteConfirm) return;
+    const r = await fetch(`/api/admin/products/${deleteConfirm}`, { method: 'DELETE' });
+    setDeleteConfirm(null);
+    if (r.ok) load({ page });
   };
+
+  const categoryOptions = cats.map((c) => ({ value: c.slug, label: c.name }));
 
   return (
-    <div className="max-w-6xl mx-auto p-6">
-      <div className="flex items-center justify-between mb-4">
-        <h1 className="text-2xl font-bold">Quản lý sản phẩm</h1>
-        <Link href="/" className="px-3 py-2 rounded-lg border text-sm font-medium">Book Store</Link>
-      </div>
-
-      <div className="grid md:grid-cols-4 gap-3 mb-4 bg-white rounded-xl border p-4">
-        <input value={form.slug} onChange={e=>setForm({...form, slug:e.target.value})} placeholder="slug" className="px-3 py-2 rounded-lg border" />
-        <input value={form.name} onChange={e=>setForm({...form, name:e.target.value})} placeholder="name" className="px-3 py-2 rounded-lg border" />
-        <input value={form.price} onChange={e=>setForm({...form, price:e.target.value})} placeholder="price" type="number" step="0.01" className="px-3 py-2 rounded-lg border" />
-        <input value={form.salePrice} onChange={e=>setForm({...form, salePrice:e.target.value})} placeholder="salePrice" type="number" step="0.01" className="px-3 py-2 rounded-lg border" />
-        <select value={form.categorySlug} onChange={e=>setForm({...form, categorySlug:e.target.value})} className="px-3 py-2 rounded-lg border">
-          <option value="">-- category --</option>
-          {cats.map(c => <option key={c.slug} value={c.slug}>{c.name}</option>)}
-        </select>
-        <input value={form.image} onChange={e=>setForm({...form, image:e.target.value})} placeholder="image url" className="px-3 py-2 rounded-lg border md:col-span-2" />
-        <input value={form.description} onChange={e=>setForm({...form, description:e.target.value})} placeholder="description" className="px-3 py-2 rounded-lg border md:col-span-3" />
-        {error && <div className="text-red-600 md:col-span-3">{error}</div>}
-        <button onClick={createProduct} disabled={saving} className="px-3 py-2 rounded-lg border bg-gray-900 text-white">{saving? 'Đang lưu...' : 'Thêm'}</button>
-      </div>
-
-      <div className="flex items-center justify-between mb-3">
-        <input value={q} onChange={e=>setQ(e.target.value)} placeholder="Tìm theo tên" className="px-3 py-2 rounded-lg border w-72" />
-        <div className="flex items-center gap-2 text-sm">
-          <span>Page {page}/{totalPages}</span>
-          <button onClick={()=>page>1 && load({page:page-1})} className="px-2 py-1 rounded-lg border">Prev</button>
-          <button onClick={()=>page<totalPages && load({page:page+1})} className="px-2 py-1 rounded-lg border">Next</button>
-          <select value={pageSize} onChange={e=>load({page:1,pageSize:Number(e.target.value)})} className="px-2 py-1 rounded-lg border">
-            {[10,20,50].map(n => <option key={n} value={n}>{n}/page</option>)}
-          </select>
+    <div className="max-w-7xl mx-auto">
+      {/* Header */}
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-6">
+        <div>
+          <h1 className="text-2xl font-bold text-gray-900">Quản lý sản phẩm</h1>
+          <p className="text-gray-500 mt-1">Thêm, sửa, xóa sản phẩm trong kho hàng</p>
         </div>
+        <Button icon={Plus} onClick={() => setShowAddModal(true)}>
+          Thêm sản phẩm
+        </Button>
       </div>
 
-      <div className="rounded-xl border bg-white overflow-x-auto">
-        <table className="min-w-full text-sm">
-          <thead className="bg-gray-50 text-gray-600">
-            <tr>
-              <th className="text-left p-3">Product</th>
-              <th className="text-left p-3">Category</th>
-              <th className="text-right p-3">Price</th>
-              <th className="text-right p-3">Sale</th>
-              <th className="text-right p-3">Stock</th>
-              <th className="text-right p-3">Actions</th>
-            </tr>
-          </thead>
-          <tbody>
-            {loading ? (
-              <tr><td className="p-3" colSpan={6}>Loading...</td></tr>
-            ) : items.length === 0 ? (
-              <tr><td className="p-3" colSpan={6}>Không có sản phẩm</td></tr>
-            ) : items.map(row => {
-              const isEdit = editing === row.id;
-              const [name, setName] = [row._name ?? row.name, (v)=>{row._name=v;}];
-              const [category, setCategory] = [row._category ?? row.category, (v)=>{row._category=v;}];
-              const [price, setPrice] = [row._price ?? row.price, (v)=>{row._price=Number(v);}];
-              const [sale, setSale] = [row._sale ?? (row.salePrice ?? ''), (v)=>{row._sale=v===''? '': Number(v);}];
-              const [stock, setStock] = [row._stock ?? (row.stock ?? 0), (v)=>{row._stock=Number(v);}];
+      {/* Filters */}
+      <Card className="mb-6">
+        <div className="flex flex-col sm:flex-row gap-4">
+          <SearchInput
+            value={q}
+            onChange={setQ}
+            placeholder="Tìm kiếm sản phẩm..."
+            className="sm:w-80"
+          />
+          <div className="flex items-center gap-2 text-sm text-gray-500">
+            <Package className="h-4 w-4" />
+            <span>{total} sản phẩm</span>
+          </div>
+        </div>
+      </Card>
+
+      {/* Table */}
+      <Table>
+        <TableHeader>
+          <TableRow hoverable={false}>
+            <TableHead>Sản phẩm</TableHead>
+            <TableHead>Danh mục</TableHead>
+            <TableHead align="right">Giá</TableHead>
+            <TableHead align="right">Giá sale</TableHead>
+            <TableHead align="right">Tồn kho</TableHead>
+            <TableHead align="right">Thao tác</TableHead>
+          </TableRow>
+        </TableHeader>
+        <TableBody>
+          {loading ? (
+            <TableSkeleton rows={5} cols={6} />
+          ) : items.length === 0 ? (
+            <TableEmpty
+              colSpan={6}
+              icon={Package}
+              message="Không có sản phẩm"
+              description="Bắt đầu bằng cách thêm sản phẩm mới"
+            />
+          ) : (
+            items.map((row) => {
+              const isEditing = editingRow === row.id;
 
               return (
-                <tr key={row.id} className="border-t">
-                  <td className="p-3">
+                <TableRow key={row.id}>
+                  <TableCell>
                     <div className="flex items-center gap-3">
-                      {row.image ? <Image src={row.image} alt={row.name} width={40} height={40} className="rounded" /> : <div className="w-10 h-10 rounded bg-gray-200" />}
-                      <div className="flex flex-col">
-                        {isEdit ? (
-                          <input defaultValue={row.name} onChange={e=>setName(e.target.value)} className="px-2 py-1 rounded border" />
+                      {row.image ? (
+                        <Image
+                          src={row.image}
+                          alt={row.name}
+                          width={48}
+                          height={48}
+                          className="rounded-lg object-cover"
+                        />
+                      ) : (
+                        <div className="w-12 h-12 rounded-lg bg-gray-100 flex items-center justify-center">
+                          <ImageIcon className="h-5 w-5 text-gray-400" />
+                        </div>
+                      )}
+                      <div>
+                        {isEditing ? (
+                          <input
+                            value={editForm.name}
+                            onChange={(e) => setEditForm({ ...editForm, name: e.target.value })}
+                            className="px-2 py-1 rounded-lg border border-gray-300 text-sm font-medium w-full"
+                          />
                         ) : (
-                          <div className="font-medium">{row.name}</div>
+                          <div className="font-medium text-gray-900">{row.name}</div>
                         )}
-                        <div className="text-gray-500 text-xs">{row.slug}</div>
+                        <div className="text-xs text-gray-500">{row.slug}</div>
                       </div>
                     </div>
-                  </td>
-                  <td className="p-3">
-                    {isEdit ? (
-                      <select defaultValue={row.category||''} onChange={e=>setCategory(e.target.value)} className="px-2 py-1 rounded border">
+                  </TableCell>
+                  <TableCell>
+                    {isEditing ? (
+                      <select
+                        value={editForm.category}
+                        onChange={(e) => setEditForm({ ...editForm, category: e.target.value })}
+                        className="px-2 py-1 rounded-lg border border-gray-300 text-sm"
+                      >
                         <option value="">--</option>
-                        {cats.map(c => <option key={c.slug} value={c.slug}>{c.name}</option>)}
+                        {cats.map((c) => (
+                          <option key={c.slug} value={c.slug}>
+                            {c.name}
+                          </option>
+                        ))}
                       </select>
-                    ) : (row.category || '-')}
-                  </td>
-                  <td className="p-3 text-right">
-                    {isEdit ? (
-                      <input type="number" step="0.01" defaultValue={row.price} onChange={e=>setPrice(e.target.value)} className="px-2 py-1 rounded border w-28 text-right" />
-                    ) : vnd(Number(row.price)*1000)}
-                  </td>
-                  <td className="p-3 text-right">
-                    {isEdit ? (
-                      <input type="number" step="0.01" defaultValue={row.salePrice ?? ''} onChange={e=>setSale(e.target.value)} className="px-2 py-1 rounded border w-28 text-right" />
-                    ) : (row.salePrice!=null ? vnd(Number(row.salePrice)*1000) : '-')}
-                  </td>
-                  <td className="p-3 text-right">
-                    {isEdit ? (
-                      <input type="number" defaultValue={row.stock ?? 0} onChange={e=>setStock(e.target.value)} className="px-2 py-1 rounded border w-20 text-right" />
-                    ) : (row.stock ?? 0)}
-                  </td>
-                  <td className="p-3 text-right">
-                    {isEdit ? (
+                    ) : (
+                      <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-gray-100 text-gray-700">
+                        {row.category || '-'}
+                      </span>
+                    )}
+                  </TableCell>
+                  <TableCell align="right">
+                    {isEditing ? (
+                      <input
+                        type="number"
+                        value={editForm.price}
+                        onChange={(e) => setEditForm({ ...editForm, price: e.target.value })}
+                        className="px-2 py-1 rounded-lg border border-gray-300 text-sm w-28 text-right"
+                      />
+                    ) : (
+                      <span className="font-medium">{vnd(row.price)}</span>
+                    )}
+                  </TableCell>
+                  <TableCell align="right">
+                    {isEditing ? (
+                      <input
+                        type="number"
+                        value={editForm.salePrice}
+                        onChange={(e) => setEditForm({ ...editForm, salePrice: e.target.value })}
+                        className="px-2 py-1 rounded-lg border border-gray-300 text-sm w-28 text-right"
+                      />
+                    ) : row.salePrice != null ? (
+                      <span className="font-medium text-red-600">{vnd(row.salePrice)}</span>
+                    ) : (
+                      <span className="text-gray-400">-</span>
+                    )}
+                  </TableCell>
+                  <TableCell align="right">
+                    {isEditing ? (
+                      <input
+                        type="number"
+                        value={editForm.stock}
+                        onChange={(e) => setEditForm({ ...editForm, stock: e.target.value })}
+                        className="px-2 py-1 rounded-lg border border-gray-300 text-sm w-20 text-right"
+                      />
+                    ) : (
+                      <span className={row.stock === 0 ? 'text-red-600 font-medium' : ''}>
+                        {row.stock ?? 0}
+                      </span>
+                    )}
+                  </TableCell>
+                  <TableCell align="right">
+                    {isEditing ? (
                       <div className="flex gap-2 justify-end">
-                        <button className="px-2 py-1 rounded-lg border" onClick={()=>{ row.name=name; row.category=category; row.price=price; row.salePrice=(sale===''? null: Number(sale)); row.stock=stock; saveRow(row); }}>Save</button>
-                        <button className="px-2 py-1 rounded-lg border" onClick={()=>setEditing(null)}>Cancel</button>
+                        <Button size="sm" onClick={saveRow} loading={saving} icon={Save}>
+                          Lưu
+                        </Button>
+                        <Button size="sm" variant="secondary" onClick={() => setEditingRow(null)}>
+                          Hủy
+                        </Button>
                       </div>
                     ) : (
-                      <div className="flex gap-2 justify-end">
-                        <button className="px-2 py-1 rounded-lg border" onClick={()=>setEditing(row.id)}>Edit</button>
-                        <button className="px-2 py-1 rounded-lg border" onClick={()=>deleteRow(row.id)}>Delete</button>
+                      <div className="flex gap-1 justify-end">
+                        <Button
+                          size="xs"
+                          variant="ghost"
+                          onClick={() => startEdit(row)}
+                          className="text-gray-500 hover:text-blue-600"
+                        >
+                          <Edit2 className="h-4 w-4" />
+                        </Button>
+                        <Button
+                          size="xs"
+                          variant="ghost"
+                          onClick={() => setDeleteConfirm(row.id)}
+                          className="text-gray-500 hover:text-red-600"
+                        >
+                          <Trash2 className="h-4 w-4" />
+                        </Button>
                       </div>
                     )}
-                  </td>
-                </tr>
+                  </TableCell>
+                </TableRow>
               );
-            })}
-          </tbody>
-        </table>
-      </div>
+            })
+          )}
+        </TableBody>
+      </Table>
+
+      {/* Pagination */}
+      {!loading && total > 0 && (
+        <Pagination
+          currentPage={page}
+          totalPages={totalPages}
+          pageSize={pageSize}
+          totalItems={total}
+          onPageChange={(p) => load({ page: p })}
+          onPageSizeChange={(ps) => load({ page: 1, pageSize: ps })}
+        />
+      )}
+
+      {/* Add Product Modal */}
+      <Modal
+        isOpen={showAddModal}
+        onClose={() => setShowAddModal(false)}
+        title="Thêm sản phẩm mới"
+        description="Điền thông tin sản phẩm để thêm vào kho hàng"
+        size="lg"
+      >
+        <form onSubmit={createProduct} className="space-y-4">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <Input
+              label="Slug"
+              value={form.slug}
+              onChange={(e) => setForm({ ...form, slug: e.target.value })}
+              placeholder="ten-san-pham"
+              required
+            />
+            <Input
+              label="Tên sản phẩm"
+              value={form.name}
+              onChange={(e) => setForm({ ...form, name: e.target.value })}
+              placeholder="Tên sản phẩm"
+              required
+            />
+            <Input
+              label="Giá"
+              type="number"
+              step="0.01"
+              value={form.price}
+              onChange={(e) => setForm({ ...form, price: e.target.value })}
+              placeholder="0"
+              required
+            />
+            <Input
+              label="Giá sale"
+              type="number"
+              step="0.01"
+              value={form.salePrice}
+              onChange={(e) => setForm({ ...form, salePrice: e.target.value })}
+              placeholder="Để trống nếu không có"
+            />
+            <Select
+              label="Danh mục"
+              value={form.categorySlug}
+              onChange={(e) => setForm({ ...form, categorySlug: e.target.value })}
+              options={categoryOptions}
+              placeholder="Chọn danh mục"
+              required
+            />
+            <Input
+              label="URL hình ảnh"
+              value={form.image}
+              onChange={(e) => setForm({ ...form, image: e.target.value })}
+              placeholder="https://..."
+            />
+          </div>
+          <Input
+            label="Mô tả"
+            value={form.description}
+            onChange={(e) => setForm({ ...form, description: e.target.value })}
+            placeholder="Mô tả sản phẩm"
+          />
+          {error && (
+            <div className="p-3 bg-red-50 border border-red-200 rounded-lg text-red-600 text-sm">
+              {error}
+            </div>
+          )}
+          <div className="flex justify-end gap-3 pt-4 border-t border-gray-100">
+            <Button type="button" variant="secondary" onClick={() => setShowAddModal(false)}>
+              Hủy
+            </Button>
+            <Button type="submit" loading={saving} icon={Plus}>
+              Thêm sản phẩm
+            </Button>
+          </div>
+        </form>
+      </Modal>
+
+      {/* Delete Confirm Modal */}
+      <ConfirmModal
+        isOpen={!!deleteConfirm}
+        onClose={() => setDeleteConfirm(null)}
+        onConfirm={deleteRow}
+        title="Xóa sản phẩm"
+        description="Bạn có chắc chắn muốn xóa sản phẩm này? Hành động này không thể hoàn tác."
+        confirmText="Xóa"
+        cancelText="Hủy"
+        variant="danger"
+      />
     </div>
   );
 }

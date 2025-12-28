@@ -1,68 +1,199 @@
 "use client";
 import { useEffect, useState } from 'react';
 import Link from 'next/link';
+import {
+  Users,
+  Shield,
+  User,
+  Mail,
+  Calendar,
+  Eye,
+} from 'lucide-react';
+import { Card } from '../../../components/admin/Card';
+import Button from '../../../components/admin/Button';
+import Badge from '../../../components/admin/Badge';
+import SearchInput from '../../../components/admin/SearchInput';
+import {
+  Table,
+  TableHeader,
+  TableBody,
+  TableRow,
+  TableHead,
+  TableCell,
+  TableEmpty,
+  TableSkeleton,
+} from '../../../components/admin/Table';
 
 export default function ManageUsersPage() {
   const [items, setItems] = useState([]);
   const [q, setQ] = useState('');
   const [loading, setLoading] = useState(true);
-  const [editingId, setEditingId] = useState(null);
-  const [draft, setDraft] = useState({ name: '', role: '' });
+
+  // Stats
+  const [stats, setStats] = useState({
+    total: 0,
+    admins: 0,
+    users: 0,
+  });
 
   const load = async (search = q) => {
     setLoading(true);
-    const r = await fetch('/api/admin/users' + (search?`?search=${encodeURIComponent(search)}`:''));
-    const d = await r.json().catch(()=>({}));
-    setItems(d.items||[]);
+    const r = await fetch('/api/admin/users' + (search ? `?search=${encodeURIComponent(search)}` : ''));
+    const d = await r.json().catch(() => ({}));
+    const userItems = d.items || [];
+    setItems(userItems);
+
+    if (!search) {
+      setStats({
+        total: userItems.length,
+        admins: userItems.filter((u) => u.role === 'ADMIN').length,
+        users: userItems.filter((u) => u.role === 'USER').length,
+      });
+    }
     setLoading(false);
   };
 
-  useEffect(() => { load(''); }, []);
-  useEffect(() => { const t=setTimeout(()=>load(q), 300); return ()=>clearTimeout(t); }, [q]);
+  useEffect(() => {
+    load('');
+  }, []);
 
-  const update = async (id, data) => {
-    const r = await fetch(`/api/admin/users/${id}`, { method:'PUT', headers:{'Content-Type':'application/json'}, body: JSON.stringify(data) });
-    if (r.ok) load();
-  };
+  useEffect(() => {
+    const t = setTimeout(() => load(q), 300);
+    return () => clearTimeout(t);
+  }, [q]);
 
-  const startEdit = (u) => {
-    setEditingId(u.id);
-    setDraft({ name: u.name || '', role: u.role || 'USER' });
-  };
-  const cancelEdit = () => { setEditingId(null); };
-  const saveEdit = async () => {
-    if (!editingId) return;
-    await update(editingId, { name: draft.name, role: draft.role });
-    setEditingId(null);
+  const getRoleBadge = (role) => {
+    if (role === 'ADMIN') {
+      return <Badge variant="primary">Admin</Badge>;
+    }
+    return <Badge variant="default">User</Badge>;
   };
 
   return (
-    <div className="max-w-6xl mx-auto p-6">
-      <h1 className="text-2xl font-bold mb-4">Quản lý người dùng</h1>
-      <div className="mb-3">
-        <input value={q} onChange={e=>setQ(e.target.value)} placeholder="Tìm theo email hoặc tên" className="px-3 py-2 rounded-lg border w-80" />
-      </div>
-      {loading ? <p>Loading...</p> : (
-        <div className="rounded-xl border border-gray-200 bg-white overflow-hidden">
-          <div className="grid grid-cols-12 px-4 py-2 text-sm font-semibold bg-gray-50">
-            <div className="col-span-4">Email</div>
-            <div className="col-span-4">Name</div>
-            <div className="col-span-2">Role</div>
-            <div className="col-span-2 text-right">Created</div>
-          </div>
-          {items.map(u => (
-            <a key={u.id} href={`/manage/users/${u.id}`} className="grid grid-cols-12 px-4 py-2 border-t items-center text-sm hover:bg-gray-50">
-              <div className="col-span-4">{u.email}</div>
-              <div className="col-span-4">{u.name || '-'}</div>
-              <div className="col-span-2">{u.role}</div>
-              <div className="col-span-2 text-right text-gray-500">{new Date(u.createdAt).toLocaleDateString()}</div>
-            </a>
-          ))}
-          {!items.length && (
-            <div className="px-4 py-6 text-center text-gray-500">Không có người dùng</div>
-          )}
+    <div className="max-w-7xl mx-auto">
+      {/* Header */}
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-6">
+        <div>
+          <h1 className="text-2xl font-bold text-gray-900">Quản lý người dùng</h1>
+          <p className="text-gray-500 mt-1">Xem và quản lý tài khoản người dùng</p>
         </div>
-      )}
+      </div>
+
+      {/* Stats Cards */}
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
+        <Card>
+          <div className="flex items-center gap-3">
+            <div className="p-2 bg-blue-50 rounded-lg">
+              <Users className="h-5 w-5 text-blue-600" />
+            </div>
+            <div>
+              <p className="text-2xl font-bold text-gray-900">{stats.total}</p>
+              <p className="text-sm text-gray-500">Tổng người dùng</p>
+            </div>
+          </div>
+        </Card>
+        <Card>
+          <div className="flex items-center gap-3">
+            <div className="p-2 bg-purple-50 rounded-lg">
+              <Shield className="h-5 w-5 text-purple-600" />
+            </div>
+            <div>
+              <p className="text-2xl font-bold text-gray-900">{stats.admins}</p>
+              <p className="text-sm text-gray-500">Quản trị viên</p>
+            </div>
+          </div>
+        </Card>
+        <Card>
+          <div className="flex items-center gap-3">
+            <div className="p-2 bg-green-50 rounded-lg">
+              <User className="h-5 w-5 text-green-600" />
+            </div>
+            <div>
+              <p className="text-2xl font-bold text-gray-900">{stats.users}</p>
+              <p className="text-sm text-gray-500">Người dùng thường</p>
+            </div>
+          </div>
+        </Card>
+      </div>
+
+      {/* Search */}
+      <Card className="mb-6">
+        <div className="flex flex-col sm:flex-row gap-4 items-start sm:items-center justify-between">
+          <SearchInput
+            value={q}
+            onChange={setQ}
+            placeholder="Tìm theo email hoặc tên..."
+            className="sm:w-80"
+          />
+          <p className="text-sm text-gray-500">
+            Hiển thị {items.length} người dùng
+          </p>
+        </div>
+      </Card>
+
+      {/* Table */}
+      <Table>
+        <TableHeader>
+          <TableRow hoverable={false}>
+            <TableHead>Người dùng</TableHead>
+            <TableHead>Email</TableHead>
+            <TableHead>Vai trò</TableHead>
+            <TableHead>Ngày tạo</TableHead>
+            <TableHead align="right">Thao tác</TableHead>
+          </TableRow>
+        </TableHeader>
+        <TableBody>
+          {loading ? (
+            <TableSkeleton rows={5} cols={5} />
+          ) : items.length === 0 ? (
+            <TableEmpty
+              colSpan={5}
+              icon={Users}
+              message="Không có người dùng"
+              description={q ? 'Thử từ khóa khác' : 'Chưa có người dùng nào'}
+            />
+          ) : (
+            items.map((user) => (
+              <TableRow key={user.id}>
+                <TableCell>
+                  <div className="flex items-center gap-3">
+                    <div className="flex items-center justify-center w-10 h-10 rounded-full bg-gradient-to-br from-brand-500 to-brand-700 text-white font-semibold text-sm">
+                      {user.name?.charAt(0)?.toUpperCase() || user.email?.charAt(0)?.toUpperCase() || 'U'}
+                    </div>
+                    <div>
+                      <p className="font-medium text-gray-900">{user.name || '-'}</p>
+                      <p className="text-xs text-gray-500">ID: {user.id.slice(-8)}</p>
+                    </div>
+                  </div>
+                </TableCell>
+                <TableCell>
+                  <div className="flex items-center gap-2">
+                    <Mail className="h-4 w-4 text-gray-400" />
+                    <span className="text-gray-700">{user.email}</span>
+                  </div>
+                </TableCell>
+                <TableCell>
+                  {getRoleBadge(user.role)}
+                </TableCell>
+                <TableCell>
+                  <div className="flex items-center gap-2 text-gray-500">
+                    <Calendar className="h-4 w-4" />
+                    <span>{new Date(user.createdAt).toLocaleDateString('vi-VN')}</span>
+                  </div>
+                </TableCell>
+                <TableCell align="right">
+                  <Link href={`/manage/users/${user.id}`}>
+                    <Button size="xs" variant="ghost" className="text-gray-500 hover:text-brand-600">
+                      <Eye className="h-4 w-4" />
+                      <span className="ml-1">Chi tiết</span>
+                    </Button>
+                  </Link>
+                </TableCell>
+              </TableRow>
+            ))
+          )}
+        </TableBody>
+      </Table>
     </div>
   );
 }

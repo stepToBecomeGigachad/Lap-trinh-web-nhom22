@@ -1,6 +1,7 @@
  .wrap { display: flex; align-items: center; gap: 12px; }
- .name { font-weight: 600; color: var(--primary); }
- .email { color: var(--muted); font-size: 14px; }
- .btn { padding: 8px 12px; border-radius: 8px; border: 1px solid var(--border); text-decoration: none; }
- .btnPrimary { background: var(--accent); color: #fff; border-color: var(--accent); }
+ .name { font-weight: 600; color: #ffffff; }
+ .email { color: #d4d4d8; font-size: 14px; }
+ .btn { padding: 8px 12px; border-radius: 8px; border: 2px solid #ffffff; text-decoration: none; background: transparent; color: #ffffff; transition: all 0.3s ease; }
+ .btnPrimary { background: #ffffff; color: #000000; border-color: #ffffff; box-shadow: 0 2px 8px rgba(255, 255, 255, 0.2); }
+ .btnPrimary:hover { box-shadow: 0 4px 12px rgba(255, 255, 255, 0.3); transform: translateY(-1px); }
  .stack { display: flex; align-items: center; gap: 8px; }

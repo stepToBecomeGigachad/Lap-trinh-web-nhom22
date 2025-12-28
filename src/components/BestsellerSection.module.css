@@ -1,6 +1,6 @@
 .bestseller {
   padding: 100px 0;
-  background: white;
+  background: #ffffff;
 }
 
 .container {
@@ -20,7 +20,7 @@
   margin: 16px 0 24px; 
   font-size: 40px; 
   font-weight: 700;
-  color: var(--primary);
+  color: #000000;
   line-height: 1.2;
 }
 
@@ -29,22 +29,22 @@
   margin-bottom: 32px;
   line-height: 1.7;
   font-size: 16px;
-  color: var(--muted);
+  color: #52525b;
 }
 
 .bestsellerImage {
   border-radius: 16px;
-  border: 1px solid var(--border);
+  border: none;
   width: 100%;
   height: 100%;
   object-fit: cover;
   display: block;
   margin: 0 auto;
-  box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
+  box-shadow: 0 20px 40px rgba(0, 0, 0, 0.2);
 }
 
 .btnPrimary {
-  background: var(--accent);
+  background: #000000;
   color: white;
   padding: 16px 32px;
   border-radius: 8px;
@@ -52,13 +52,14 @@
   font-weight: 600;
   display: inline-block;
   transition: all 0.3s ease;
-  border: 1px solid var(--accent);
+  border: 2px solid #000000;
   cursor: pointer;
   font-size: 16px;
-  box-shadow: 0 4px 12px rgba(14, 165, 233, 0.3);
+  box-shadow: 0 6px 16px rgba(0, 0, 0, 0.25);
 }
 
 .btnPrimary:hover {
   transform: translateY(-2px);
-  box-shadow: 0 6px 20px rgba(14, 165, 233, 0.4);
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.35);
+  background: #1a1a1a;
 }

@@ -1,6 +1,16 @@
 import { NextResponse } from 'next/server';
 import prisma from '../../../lib/prisma';
 import { parseSession, sessionCookieName } from '../../../lib/auth';
+import { logger, logSecurityEvent } from '../../../lib/logger';
+import {
+  validateOrderItems,
+  validateQuantity,
+  checkStockAvailability,
+  sanitizeShippingInfo,
+  sanitizeNote,
+  calculateServerTotal,
+  validateCoupon,
+} from '../../../middleware/orderValidation';
 
 export async function GET(request) {
   const token = request.cookies.get(sessionCookieName())?.value;
@@ -25,23 +35,81 @@ export async function GET(request) {
 export async function POST(request) {
   try {
     const body = await request.json();
-    const { items, shipping } = body || {};
-    if (!Array.isArray(items) || items.length === 0) {
-      return NextResponse.json({ ok: false, error: 'Empty items' }, { status: 400 });
+    const { items, shipping, note, couponCode, paymentMethod } = body || {};
+
+    // === 1. VALIDATE ORDER ITEMS ===
+    const itemsValidation = validateOrderItems(items);
+    if (!itemsValidation.valid) {
+      logSecurityEvent(request, 'ORDER_INVALID_ITEMS', { error: itemsValidation.error });
+      return NextResponse.json({ ok: false, error: itemsValidation.error }, { status: 400 });
     }
-    for (const f of ['name','phone','address','city','district']) {
-      if (!shipping?.[f]) return NextResponse.json({ ok: false, error: 'Missing shipping info' }, { status: 400 });
+
+    // Validate each item quantity (防止负数攻击)
+    for (const item of items) {
+      const qtyValidation = validateQuantity(item.quantity);
+      if (!qtyValidation.valid) {
+        logSecurityEvent(request, 'ORDER_INVALID_QUANTITY', { slug: item.slug, quantity: item.quantity });
+        return NextResponse.json({ ok: false, error: qtyValidation.error }, { status: 400 });
+      }
+      item.quantity = qtyValidation.value; // Use validated integer
     }
 
-    // items format: [{ slug, quantity }]
-    const slugs = items.map(i => i.slug);
-    const dbProducts = await prisma.product.findMany({ where: { slug: { in: slugs } }, select: { id: true, slug: true, price: true, salePrice: true } });
-    if (dbProducts.length !== slugs.length) return NextResponse.json({ ok: false, error: 'Some products not found' }, { status: 400 });
+    // === 2. VALIDATE SHIPPING INFO ===
+    const shippingValidation = sanitizeShippingInfo(shipping);
+    if (!shippingValidation.valid) {
+      return NextResponse.json({ ok: false, error: shippingValidation.error }, { status: 400 });
+    }
+    const safeShipping = shippingValidation.data;
 
-    const priceBySlug = Object.fromEntries(dbProducts.map(p => [p.slug, p.salePrice ?? p.price]));
-    const idBySlug = Object.fromEntries(dbProducts.map(p => [p.slug, p.id]));
-    const total = items.reduce((t, it) => t + (priceBySlug[it.slug] || 0) * (it.quantity || 1), 0);
+    // === 3. SANITIZE NOTE ===
+    const safeNote = sanitizeNote(note);
 
+    // === 4. CHECK STOCK AVAILABILITY (Server-side verification) ===
+    const stockCheck = await checkStockAvailability(items, prisma);
+    if (!stockCheck.available) {
+      logSecurityEvent(request, 'ORDER_INSUFFICIENT_STOCK', { items: stockCheck.insufficientItems });
+      return NextResponse.json({
+        ok: false,
+        error: stockCheck.error,
+        insufficientItems: stockCheck.insufficientItems,
+      }, { status: 400 });
+    }
+
+    // === 5. CALCULATE TOTAL SERVER-SIDE (Never trust client prices) ===
+    const dbProducts = await prisma.product.findMany({
+      where: { slug: { in: items.map(i => i.slug) } },
+      select: { id: true, slug: true, price: true, salePrice: true, stock: true, name: true }
+    });
+
+    const subtotal = calculateServerTotal(items, dbProducts);
+
+    // === 6. VALIDATE COUPON SERVER-SIDE ===
+    const couponValidation = await validateCoupon(couponCode, subtotal, prisma);
+    let couponId = null;
+    let discountAmount = 0;
+
+    if (couponCode && couponValidation.valid) {
+      discountAmount = couponValidation.discount;
+      couponId = couponValidation.couponId;
+    } else if (couponCode && !couponValidation.valid) {
+      // Invalid coupon - continue without discount, log security event
+      logSecurityEvent(request, 'ORDER_INVALID_COUPON', { code: couponCode, error: couponValidation.error });
+    }
+
+    // === 7. CALCULATE SHIPPING FEE ===
+    const totalQuantity = items.reduce((sum, item) => sum + item.quantity, 0);
+    const shippingFee = totalQuantity < 10 ? 10000 : 50000;
+
+    // === 8. CALCULATE FINAL TOTAL ===
+    const total = subtotal - discountAmount + shippingFee;
+
+    // Verify total is positive
+    if (total <= 0) {
+      logSecurityEvent(request, 'ORDER_NEGATIVE_TOTAL', { subtotal, discountAmount, shippingFee, total });
+      return NextResponse.json({ ok: false, error: 'Tổng đơn hàng không hợp lệ' }, { status: 400 });
+    }
+
+    // === 9. GET USER FROM SESSION ===
     const token = request.cookies.get(sessionCookieName())?.value;
     const sess = await parseSession(token);
     let userId = null;
@@ -54,30 +122,72 @@ export async function POST(request) {
       userId = user.id;
     }
 
-    const created = await prisma.order.create({
-      data: {
-        userId,
-        status: 'PENDING',
-        total,
-        shippingName: shipping.name,
-        phone: shipping.phone,
-        address: shipping.address,
-        city: shipping.city,
-        district: shipping.district,
-        items: {
-          create: items.map(it => ({
-            productId: idBySlug[it.slug],
-            quantity: it.quantity || 1,
-            priceAtOrder: priceBySlug[it.slug] || 0,
-          })),
+    // === 10. CREATE ORDER IN TRANSACTION (Atomic operation) ===
+    const priceBySlug = Object.fromEntries(dbProducts.map(p => [p.slug, p.salePrice ?? p.price]));
+    const idBySlug = Object.fromEntries(dbProducts.map(p => [p.slug, p.id]));
+
+    const created = await prisma.$transaction(async (tx) => {
+      // Double-check stock in transaction
+      for (const it of items) {
+        const product = await tx.product.findUnique({
+          where: { id: idBySlug[it.slug] },
+          select: { stock: true, name: true },
+        });
+        if (!product || product.stock < it.quantity) {
+          throw new Error(`Sản phẩm "${product?.name || it.slug}" không đủ hàng`);
+        }
+      }
+
+      // Create order
+      const order = await tx.order.create({
+        data: {
+          userId,
+          status: 'PENDING',
+          total,
+          discount: discountAmount,
+          couponId,
+          shippingName: safeShipping.name,
+          phone: safeShipping.phone,
+          address: safeShipping.address,
+          city: safeShipping.city,
+          district: safeShipping.district,
+          note: safeNote,
+          items: {
+            create: items.map(it => ({
+              productId: idBySlug[it.slug],
+              quantity: it.quantity,
+              priceAtOrder: priceBySlug[it.slug] || 0,
+            })),
+          },
         },
-      },
-      select: { id: true },
+        select: { id: true },
+      });
+
+      // Decrease stock atomically
+      for (const it of items) {
+        await tx.product.update({
+          where: { id: idBySlug[it.slug] },
+          data: { stock: { decrement: it.quantity } },
+        });
+      }
+
+      // Increment coupon usage
+      if (couponId) {
+        await tx.coupon.update({
+          where: { id: couponId },
+          data: { usedCount: { increment: 1 } },
+        });
+      }
+
+      return order;
     });
 
+    logger.info('Order created', { orderId: created.id, userId, total });
+
     return NextResponse.json({ ok: true, id: created.id, total });
-  } catch {
-    return NextResponse.json({ ok: false, error: 'Server error' }, { status: 500 });
+  } catch (error) {
+    logger.error('Order creation failed', { error: error.message });
+    return NextResponse.json({ ok: false, error: error.message || 'Server error' }, { status: 500 });
   }
 }
 

@@ -1,6 +1,7 @@
 .footer { 
-  background: #0e0f12; 
-  color: #c3c7d1; 
+  background: #000000; 
+  color: #d4d4d8; 
+  box-shadow: 0 -4px 12px rgba(0, 0, 0, 0.3);
 }
 
 .container {
@@ -17,8 +18,9 @@
 }
 
 .footerCol h4 { 
-  color: #fff; 
+  color: #ffffff; 
   margin: 0 0 10px; 
+  font-weight: 600;
 }
 
 .footerCol ul { 
@@ -30,15 +32,17 @@
 }
 
 .footerCol a { 
-  color: #c3c7d1; 
+  color: #d4d4d8; 
+  transition: color 0.3s ease;
 }
 
 .footerCol a:hover { 
-  color: #fff; 
+  color: #ffffff; 
 }
 
 .footerBottom { 
-  border-top: 1px solid rgba(255,255,255,.08); 
+  border-top: 1px solid #27272a; 
   padding: 16px 0 28px; 
   text-align: center; 
+  color: #a1a1aa;
 }

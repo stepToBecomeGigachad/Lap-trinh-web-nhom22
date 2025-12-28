@@ -8,12 +8,12 @@
 }
 
 .categories {
-  background: white;
+  background: #ffffff;
 }
 
 .sectionLead {
   text-align: center;
-  color: var(--muted);
+  color: #52525b;
   margin: 16px auto 60px;
   max-width: 720px;
   font-size: 18px;
@@ -43,29 +43,28 @@
 .category { 
   display: block; 
   padding: 24px 20px; 
-  border: 2px dashed var(--border); 
+  border: none;
   border-radius: 12px; 
   text-align: center; 
   font-weight: 600; 
-  color: var(--primary); 
-  background: #fff; 
+  color: #000000; 
+  background: #ffffff; 
   transition: all 0.3s ease;
   font-size: 16px;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.1);
 }
 
 .category:hover {
-  background: var(--accent);
+  background: #000000;
   color: white;
-  border-color: var(--accent);
-  transform: translateY(-2px);
-  box-shadow: 0 8px 24px rgba(14, 165, 233, 0.2);
+  transform: translateY(-4px);
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.25);
 }
 
 .btnOutline {
   background: transparent;
-  color: var(--primary);
-  border: 2px solid var(--primary);
+  color: #000000;
+  border: 2px solid #000000;
   padding: 14px 28px;
   border-radius: 8px;
   text-decoration: none;
@@ -73,12 +72,13 @@
   display: inline-block;
   transition: all 0.3s ease;
   font-size: 16px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
 }
 
 .btnOutline:hover {
-  background: var(--primary);
+  background: #000000;
   color: white;
   transform: translateY(-2px);
-  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.15);
+  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.25);
 }
 

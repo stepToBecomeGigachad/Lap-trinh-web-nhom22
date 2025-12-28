@@ -23,7 +23,7 @@ export async function GET(request) {
       const priceCond = {};
       if (min !== null) { saleCond.gte = min; priceCond.gte = min; }
       if (max !== null) { saleCond.lte = max; priceCond.lte = max; }
-      andWhere.push({ OR: [ { salePrice: saleCond }, { salePrice: null, price: priceCond } ] });
+      andWhere.push({ OR: [{ salePrice: saleCond }, { salePrice: null, price: priceCond }] });
     }
 
     const where = andWhere.length ? { AND: andWhere } : {};
@@ -43,6 +43,7 @@ export async function GET(request) {
       description: p.description,
       price: p.price,
       salePrice: p.salePrice,
+      stock: p.stock,
       brand: p.brand,
       category: p.category?.slug || null,
       image: p.images?.[0]?.url || null,

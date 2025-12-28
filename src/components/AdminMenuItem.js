@@ -21,6 +21,11 @@ export default function AdminMenuItem() {
 
   if (!isAdmin) return null;
   return (
-    <li><Link href="/manage">Admin</Link></li>
+    <Link
+      href="/manage"
+      className="flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-amber-500 to-orange-500 text-white font-semibold rounded-xl hover:from-amber-600 hover:to-orange-600 transition-all shadow-lg hover:shadow-xl text-sm"
+    >
+      ⚙️ Quản trị
+    </Link>
   );
 }

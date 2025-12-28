@@ -23,16 +23,18 @@ ENV NODE_ENV=production
 ENV NEXT_TELEMETRY_DISABLED=1
 EXPOSE 3000
 
+# Copy package files and install only production deps + prisma CLI
+COPY package*.json ./
+RUN npm ci --only=production && npm install prisma@^6.19.0
+
 # Copy standalone server output
 COPY --from=builder /app/.next/standalone ./
 COPY --from=builder /app/.next/static ./.next/static
 COPY --from=builder /app/public ./public
 COPY --from=builder /app/prisma ./prisma
 
-# Prisma Client runtime (needed for seeding and any server-side Prisma usage)
-COPY --from=builder /app/node_modules/@prisma ./node_modules/@prisma
-COPY --from=builder /app/node_modules/@prisma/client ./node_modules/@prisma/client
+# Prisma Client runtime (needed for server-side Prisma usage)
 COPY --from=builder /app/node_modules/.prisma ./node_modules/.prisma
 
-# Run DB migrations then start server
-CMD sh -c "npx prisma migrate deploy && node server.js"
+# Sync DB schema and start server  
+CMD sh -c "node node_modules/prisma/build/index.js db push --skip-generate && node server.js"

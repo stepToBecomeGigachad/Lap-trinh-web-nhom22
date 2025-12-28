@@ -26,11 +26,34 @@ export default function CartStatus() {
   if (!loggedIn) return null;
 
   return (
-    <>
-      <button onClick={()=>useCartStore.getState().setOpen(true)} style={{ border: '1px solid var(--border)', padding: '8px 12px', borderRadius: 8 }}>
-        Cart ({totalItems})
+    <div className="flex items-center gap-2">
+      {/* Cart Button */}
+      <button
+        onClick={() => useCartStore.getState().setOpen(true)}
+        className="relative flex items-center gap-2 border-2 border-white/80 px-4 py-2 rounded-lg bg-transparent text-white cursor-pointer font-semibold transition-all hover:bg-white/10"
+        style={{ minWidth: 'auto' }}
+      >
+        <span className="text-lg">🛒</span>
+        <span className="hidden sm:inline">Giỏ hàng</span>
+        {totalItems > 0 && (
+          <span className="absolute -top-2 -right-2 w-5 h-5 bg-red-500 text-white text-xs rounded-full flex items-center justify-center font-bold">
+            {totalItems > 9 ? '9+' : totalItems}
+          </span>
+        )}
       </button>
+
+      {/* Quick Checkout Button */}
+      {totalItems > 0 && (
+        <Link
+          href="/checkout"
+          className="hidden md:flex items-center gap-2 bg-white text-gray-900 px-4 py-2 rounded-lg font-semibold transition-all hover:bg-gray-100"
+        >
+          <span>💳</span>
+          <span>Thanh toán</span>
+        </Link>
+      )}
+
       <CartDrawer />
-    </>
+    </div>
   );
 }
