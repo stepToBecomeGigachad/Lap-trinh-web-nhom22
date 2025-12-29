@@ -9,6 +9,10 @@ RUN npm ci
 FROM node:20-alpine AS builder
 RUN apk add --no-cache libc6-compat
 WORKDIR /app
+ARG API_PROXY_URL
+ARG APP_MODE
+ENV API_PROXY_URL=$API_PROXY_URL
+ENV APP_MODE=$APP_MODE
 ENV NEXT_TELEMETRY_DISABLED=1
 COPY --from=deps /app/node_modules ./node_modules
 COPY . .
@@ -19,6 +23,10 @@ RUN npm run build
 FROM node:20-alpine AS runner
 RUN apk add --no-cache libc6-compat
 WORKDIR /app
+ARG API_PROXY_URL
+ARG APP_MODE
+ENV API_PROXY_URL=$API_PROXY_URL
+ENV APP_MODE=$APP_MODE
 ENV NODE_ENV=production
 ENV NEXT_TELEMETRY_DISABLED=1
 EXPOSE 3000
@@ -36,5 +44,5 @@ COPY --from=builder /app/prisma ./prisma
 # Prisma Client runtime (needed for server-side Prisma usage)
 COPY --from=builder /app/node_modules/.prisma ./node_modules/.prisma
 
-# Sync DB schema and start server  
-CMD sh -c "node node_modules/prisma/build/index.js db push --skip-generate && node server.js"
+# Sync DB schema and start server
+CMD sh -c "if [ \"${RUN_DB_PUSH:-1}\" = \"1\" ]; then node node_modules/prisma/build/index.js db push --skip-generate; fi; node server.js"

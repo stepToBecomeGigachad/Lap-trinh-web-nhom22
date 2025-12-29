@@ -231,7 +231,7 @@ export default function ManageOrdersPage() {
                   <StatusBadge status={order.status} />
                 </TableCell>
                 <TableCell align="right">
-                  <span className="font-semibold text-gray-900">{vnd((order.total || 0) * 1000)}</span>
+                  <span className="font-semibold text-gray-900">{vnd(order.total || 0)}</span>
                 </TableCell>
                 <TableCell align="right">
                   <div className="flex items-center gap-2 justify-end">

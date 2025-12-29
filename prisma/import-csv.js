@@ -3,9 +3,21 @@ import { readFileSync } from 'fs';
 import { parse } from 'csv-parse/sync';
 import { dirname, join } from 'path';
 import { fileURLToPath } from 'url';
+import crypto from 'crypto';
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const prisma = new PrismaClient();
+const RESET_ORDERS = process.env.RESET_ORDERS === '1';
+const RESET_CARTS = process.env.RESET_CARTS === '1';
+
+const ALG = 'scrypt';
+const KEYLEN = 64;
+
+function hashPassword(password) {
+    const salt = crypto.randomBytes(16);
+    const hash = crypto.scryptSync(password, salt, KEYLEN);
+    return `${ALG}:${salt.toString('hex')}:${hash.toString('hex')}`;
+}
 
 async function main() {
     console.log('Starting import from CSV...');
@@ -54,6 +66,30 @@ async function main() {
     const cats = await prisma.category.findMany();
     const catIdBySlug = Object.fromEntries(cats.map(c => [c.slug, c.id]));
 
+    const orderItemCount = await prisma.orderItem.count();
+    if (orderItemCount > 0 && !RESET_ORDERS) {
+        console.error('Orders exist. Set RESET_ORDERS=1 to delete orders and re-import products.');
+        process.exit(1);
+    }
+
+    const savedCartItemCount = await prisma.savedCartItem.count();
+    if (savedCartItemCount > 0 && !RESET_CARTS) {
+        console.error('Saved carts exist. Set RESET_CARTS=1 to delete saved carts and re-import products.');
+        process.exit(1);
+    }
+
+    if (RESET_ORDERS) {
+        console.log('RESET_ORDERS=1: Clearing orders and order items...');
+        await prisma.orderItem.deleteMany({});
+        await prisma.order.deleteMany({});
+    }
+
+    if (RESET_CARTS) {
+        console.log('RESET_CARTS=1: Clearing saved carts and items...');
+        await prisma.savedCartItem.deleteMany({});
+        await prisma.savedCart.deleteMany({});
+    }
+
     // Delete old products (this will also delete related images due to cascade)
     console.log('Clearing old products...');
     await prisma.productImage.deleteMany({});
@@ -98,13 +134,15 @@ async function main() {
 
     // Create admin user
     console.log('Creating admin user...');
+    const adminEmail = process.env.ADMIN_EMAIL || 'admin@test.com';
+    const adminPassword = process.env.ADMIN_PASSWORD || 'Test.123';
     await prisma.user.upsert({
-        where: { email: 'admin@bookstore.com' },
+        where: { email: adminEmail },
         update: { role: 'ADMIN' },
         create: {
             name: 'Admin',
-            email: 'admin@bookstore.com',
-            passwordHash: '$2b$10$8K1p/a0dL1LXMw.Yx0r8E.XK8IYzG4V0e4K/3zK8k8K8K8K8K8K8K', // placeholder
+            email: adminEmail,
+            passwordHash: hashPassword(adminPassword),
             role: 'ADMIN',
         },
     });

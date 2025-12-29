@@ -3,7 +3,7 @@ import { useEffect, useState } from 'react';
 import Image from 'next/image';
 import Link from 'next/link';
 import { useCartStore } from '../../store/cart';
-import { formatPrice } from '../../lib/utils';
+import { calculateShippingFee, formatPrice } from '../../lib/utils';
 
 // Toast notification component
 function Toast({ message, type = 'success', onClose }) {
@@ -29,6 +29,9 @@ export default function CartPage() {
   const clearCart = useCartStore((s) => s.clearCart);
   const totalPrice = useCartStore((s) => s.totalPrice());
   const [toast, setToast] = useState(null);
+  const totalQuantity = items.reduce((sum, item) => sum + (item.quantity || 0), 0);
+  const shippingFee = calculateShippingFee(totalQuantity);
+  const finalTotal = totalPrice + (items.length ? shippingFee : 0);
 
   const handleRemove = (id, name) => {
     removeItem(id);
@@ -97,7 +100,12 @@ export default function CartPage() {
                     {/* Product Image */}
                     <Link href={`/products/${item.slug}`} className="flex-shrink-0">
                       <div className="relative w-28 h-28 rounded-xl overflow-hidden bg-gray-100">
-                        <Image src={item.image} alt={item.name} fill className="object-cover hover:scale-105 transition-transform" />
+                        <Image
+                          src={item.image || '/images/placeholder.jpg'}
+                          alt={item.name}
+                          fill
+                          className="object-cover hover:scale-105 transition-transform"
+                        />
                       </div>
                     </Link>
 
@@ -193,20 +201,20 @@ export default function CartPage() {
 
               <div className="space-y-4">
                 <div className="flex justify-between text-gray-600">
-                  <span>Tạm tính ({items.reduce((acc, i) => acc + i.quantity, 0)} sản phẩm)</span>
+                  <span>Tạm tính ({totalQuantity} sản phẩm)</span>
                   <span className="font-medium">{formatPrice(totalPrice)}</span>
                 </div>
 
                 <div className="flex justify-between text-gray-600">
                   <span>Phí vận chuyển</span>
-                  <span className="text-green-600 font-medium">Miễn phí</span>
+                  <span className="text-gray-900 font-medium">{formatPrice(items.length ? shippingFee : 0)}</span>
                 </div>
 
                 <hr className="border-gray-200" />
 
                 <div className="flex justify-between text-lg font-bold text-gray-900">
                   <span>Tổng cộng</span>
-                  <span>{formatPrice(totalPrice)}</span>
+                  <span>{formatPrice(finalTotal)}</span>
                 </div>
               </div>
 

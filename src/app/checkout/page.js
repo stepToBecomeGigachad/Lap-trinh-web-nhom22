@@ -4,7 +4,7 @@ import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import Image from 'next/image';
 import { useCartStore } from '../../store/cart';
-import { formatPrice } from '../../lib/utils';
+import { calculateShippingFee, formatPrice } from '../../lib/utils';
 
 // Toast notification component
 function Toast({ message, type = 'success', onClose }) {
@@ -43,8 +43,7 @@ export default function CheckoutPage() {
   // Calculate total quantity
   const totalQuantity = items.reduce((sum, item) => sum + (item.quantity || 1), 0);
 
-  // Shipping fee: <10 items = 10,000đ, >=10 items = 50,000đ
-  const shippingFee = totalQuantity < 10 ? 10000 : 50000;
+  const shippingFee = calculateShippingFee(totalQuantity);
 
   // Calculate final total with discount and shipping
   const discountAmount = appliedCoupon?.discountAmount || 0;
@@ -140,6 +139,29 @@ export default function CheckoutPage() {
         return;
       }
 
+      // If payment method is MoMo, redirect to MoMo payment
+      if (paymentMethod === 'momo') {
+        setToast({ message: 'Đang chuyển đến MoMo...', type: 'info' });
+
+        const momoRes = await fetch('/api/payment/momo/create', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ orderId: data.id }),
+        });
+        const momoData = await momoRes.json();
+
+        if (momoData.ok && momoData.payUrl) {
+          clearCart();
+          window.location.href = momoData.payUrl;
+          return;
+        } else {
+          setToast({ message: momoData.error || 'Không thể kết nối MoMo', type: 'error' });
+          setSubmitting(false);
+          return;
+        }
+      }
+
+      // COD - just complete the order
       clearCart();
       router.replace(`/orders/${data.id}?success=1`);
     } catch (err) {
@@ -281,21 +303,25 @@ export default function CheckoutPage() {
                     </div>
                   </label>
 
-                  <label className={`flex items-center gap-4 p-4 border-2 rounded-xl cursor-pointer transition-all ${paymentMethod === 'bank' ? 'border-blue-600 bg-blue-50' : 'border-gray-200 hover:border-gray-300'
+                  <label className={`flex items-center gap-4 p-4 border-2 rounded-xl cursor-pointer transition-all ${paymentMethod === 'momo' ? 'border-pink-500 bg-pink-50' : 'border-gray-200 hover:border-gray-300'
                     }`}>
                     <input
                       type="radio"
                       name="payment"
-                      value="bank"
-                      checked={paymentMethod === 'bank'}
-                      onChange={() => setPaymentMethod('bank')}
-                      className="w-5 h-5 text-blue-600"
+                      value="momo"
+                      checked={paymentMethod === 'momo'}
+                      onChange={() => setPaymentMethod('momo')}
+                      className="w-5 h-5 text-pink-500"
                     />
                     <div className="flex-1">
-                      <div className="font-medium text-gray-900">🏦 Chuyển khoản ngân hàng</div>
-                      <div className="text-sm text-gray-500">Chuyển khoản trước khi giao hàng</div>
+                      <div className="font-medium text-gray-900 flex items-center gap-2">
+                        <span className="text-pink-500 font-bold">📱 MoMo</span>
+                        <span className="text-xs bg-yellow-100 text-yellow-700 px-2 py-0.5 rounded-full">Cần tài khoản Business</span>
+                      </div>
+                      <div className="text-sm text-gray-500">Thanh toán qua ví điện tử MoMo</div>
                     </div>
                   </label>
+
                 </div>
               </div>
 
@@ -306,10 +332,17 @@ export default function CheckoutPage() {
                   disabled={submitting}
                   className={`w-full py-4 rounded-xl font-semibold text-lg transition-all ${submitting
                     ? 'bg-gray-300 text-gray-500 cursor-not-allowed'
-                    : 'bg-blue-600 text-white hover:bg-blue-700 shadow-lg shadow-blue-600/30'
+                    : paymentMethod === 'momo'
+                      ? 'bg-pink-500 text-white hover:bg-pink-600 shadow-lg shadow-pink-500/30'
+                      : 'bg-blue-600 text-white hover:bg-blue-700 shadow-lg shadow-blue-600/30'
                     }`}
                 >
-                  {submitting ? '⏳ Đang xử lý...' : `Đặt hàng - ${formatPrice(finalTotal)}`}
+                  {submitting
+                    ? '⏳ Đang xử lý...'
+                    : paymentMethod === 'momo'
+                      ? `Thanh toán MoMo - ${formatPrice(finalTotal)}`
+                      : `Đặt hàng - ${formatPrice(finalTotal)}`
+                  }
                 </button>
               </div>
             </form>
@@ -426,10 +459,17 @@ export default function CheckoutPage() {
                 disabled={submitting}
                 className={`hidden lg:flex w-full mt-6 py-4 rounded-xl font-semibold text-lg transition-all items-center justify-center gap-2 ${submitting
                   ? 'bg-gray-300 text-gray-500 cursor-not-allowed'
-                  : 'bg-blue-600 text-white hover:bg-blue-700 shadow-lg shadow-blue-600/30'
+                  : paymentMethod === 'momo'
+                    ? 'bg-pink-500 text-white hover:bg-pink-600 shadow-lg shadow-pink-500/30'
+                    : 'bg-blue-600 text-white hover:bg-blue-700 shadow-lg shadow-blue-600/30'
                   }`}
               >
-                {submitting ? '⏳ Đang xử lý...' : '✓ Xác nhận đặt hàng'}
+                {submitting
+                  ? '⏳ Đang xử lý...'
+                  : paymentMethod === 'momo'
+                    ? '📱 Thanh toán MoMo'
+                    : '✓ Xác nhận đặt hàng'
+                }
               </button>
 
               {/* Security note */}

@@ -35,7 +35,7 @@ function CustomTooltip({ active, payload, label }) {
       <div className="bg-white p-3 rounded-lg shadow-lg border border-gray-200">
         <p className="text-sm text-gray-600">{label}</p>
         <p className="text-lg font-semibold text-brand-600">
-          {vnd(payload[0].value * 1000)}
+          {vnd(payload[0].value)}
         </p>
       </div>
     );
@@ -111,7 +111,7 @@ export default function ManageHome() {
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
         <StatsCard
           title="Doanh thu tháng này"
-          value={vnd((data?.month || 0) * 1000)}
+          value={vnd(data?.month || 0)}
           icon={DollarSign}
           iconBg="bg-green-50"
           iconColor="text-green-600"
@@ -146,7 +146,7 @@ export default function ManageHome() {
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-brand-100 text-sm font-medium">Hôm nay</p>
-                <p className="text-2xl font-bold mt-1">{vnd((data?.today || 0) * 1000)}</p>
+                <p className="text-2xl font-bold mt-1">{vnd(data?.today || 0)}</p>
               </div>
               <div className="p-3 bg-white/20 rounded-xl">
                 <TrendingUp className="h-6 w-6" />
@@ -159,7 +159,7 @@ export default function ManageHome() {
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-gray-500 text-sm font-medium">Tuần này</p>
-                <p className="text-2xl font-bold text-gray-900 mt-1">{vnd((data?.week || 0) * 1000)}</p>
+                <p className="text-2xl font-bold text-gray-900 mt-1">{vnd(data?.week || 0)}</p>
               </div>
               <div className="p-3 bg-blue-50 rounded-xl">
                 <TrendingUp className="h-6 w-6 text-blue-600" />
@@ -248,7 +248,7 @@ export default function ManageHome() {
                     </div>
                     <div className="flex-1 min-w-0">
                       <p className="text-sm font-medium text-gray-900 truncate">{product.name}</p>
-                      <p className="text-xs text-gray-500">{vnd(product.price * 1000)}</p>
+                      <p className="text-xs text-gray-500">{vnd(product.price)}</p>
                     </div>
                     <div className="text-sm font-semibold text-gray-900">
                       {product.quantity} bán
@@ -298,7 +298,7 @@ export default function ManageHome() {
                       <StatusBadge status={order.status} />
                     </td>
                     <td className="px-6 py-4 text-right text-sm font-semibold text-gray-900">
-                      {vnd(order.total * 1000)}
+                      {vnd(order.total)}
                     </td>
                     <td className="px-6 py-4 text-right text-sm text-gray-500">
                       {new Date(order.createdAt).toLocaleDateString('vi-VN')}
@@ -367,4 +367,3 @@ export default function ManageHome() {
     </div>
   );
 }
-

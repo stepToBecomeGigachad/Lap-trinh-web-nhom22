@@ -1,0 +1,62 @@
+[2025-12-28T20:06:15.048Z] [INFO] Admin orders list fetched | {"count":0}
+[2025-12-28T20:06:15.069Z] [INFO] Admin orders list fetched | {"count":0}
+[2025-12-28T20:15:24.793Z] [INFO] Order created | {"orderId":"cmjq65egg0004lb01oe7nz3rn","userId":"cmjq5s3j2003fs601h7ocmk5t","total":402000}
+[2025-12-28T20:15:42.192Z] [INFO] Order created | {"orderId":"cmjq65rvm0009lb01eah17wxn","userId":"cmjq5s3j2003fs601h7ocmk5t","total":402000}
+[2025-12-28T20:15:48.772Z] [INFO] Admin orders list fetched | {"count":2}
+[2025-12-28T20:15:48.793Z] [INFO] Admin orders list fetched | {"count":2}
+[2025-12-28T20:15:54.140Z] [INFO] Admin orders list fetched | {"count":2}
+[2025-12-28T20:15:54.174Z] [INFO] Admin orders list fetched | {"count":2}
+[2025-12-28T20:16:01.607Z] [INFO] Admin orders list fetched | {"count":2}
+[2025-12-28T20:16:01.625Z] [INFO] Admin orders list fetched | {"count":2}
+[2025-12-28T20:21:38.239Z] [INFO] Admin order detail fetched | {"orderId":"cmjq65rvm0009lb01eah17wxn"}
+[2025-12-28T20:23:08.241Z] [INFO] Admin orders list fetched | {"count":2}
+[2025-12-28T20:23:08.247Z] [INFO] Admin orders list fetched | {"count":2}
+[2025-12-28T20:23:11.150Z] [INFO] Admin order detail fetched | {"orderId":"cmjq65rvm0009lb01eah17wxn"}
+[2025-12-28T20:27:16.374Z] [INFO] Admin order detail fetched | {"orderId":"cmjq65rvm0009lb01eah17wxn"}
+[2025-12-28T20:27:21.812Z] [INFO] Admin orders list fetched | {"count":2}
+[2025-12-28T20:27:21.819Z] [INFO] Admin orders list fetched | {"count":2}
+[2025-12-28T20:27:25.940Z] [INFO] Admin order detail fetched | {"orderId":"cmjq65rvm0009lb01eah17wxn"}
+[2025-12-28T20:27:27.641Z] [INFO] Admin orders list fetched | {"count":2}
+[2025-12-28T20:27:27.645Z] [INFO] Admin orders list fetched | {"count":2}
+[2025-12-28T20:27:31.467Z] [INFO] Order status updated by admin | {"orderId":"cmjq65rvm0009lb01eah17wxn","oldStatus":"PENDING","newStatus":"SHIPPED"}
+[2025-12-28T20:27:31.497Z] [INFO] Admin orders list fetched | {"count":2}
+[2025-12-28T20:27:36.918Z] [INFO] Admin orders list fetched | {"count":2}
+[2025-12-28T20:27:36.923Z] [INFO] Admin orders list fetched | {"count":2}
+[2025-12-28T20:27:40.100Z] [INFO] Order status updated by admin | {"orderId":"cmjq65rvm0009lb01eah17wxn","oldStatus":"SHIPPED","newStatus":"DELIVERED"}
+[2025-12-28T20:27:40.121Z] [INFO] Admin orders list fetched | {"count":2}
+[2025-12-28T20:28:11.556Z] [INFO] Admin order detail fetched | {"orderId":"cmjq65egg0004lb01oe7nz3rn"}
+[2025-12-28T20:28:13.767Z] [INFO] Admin orders list fetched | {"count":2}
+[2025-12-28T20:28:13.775Z] [INFO] Admin orders list fetched | {"count":2}
+[2025-12-28T20:28:15.267Z] [INFO] Admin order detail fetched | {"orderId":"cmjq65egg0004lb01oe7nz3rn"}
+[2025-12-28T20:28:19.878Z] [INFO] Admin orders list fetched | {"count":2}
+[2025-12-28T20:28:19.882Z] [INFO] Admin orders list fetched | {"count":2}
+[2025-12-28T20:33:26.159Z] [INFO] Admin orders list fetched | {"count":2}
+[2025-12-28T20:33:26.208Z] [INFO] Admin orders list fetched | {"count":2}
+[2025-12-28T20:34:40.309Z] [INFO] Admin orders list fetched | {"count":2}
+[2025-12-28T20:34:40.313Z] [INFO] Admin orders list fetched | {"count":2}
+[2025-12-28T20:34:41.042Z] [INFO] Admin orders list fetched | {"count":2}
+[2025-12-28T20:34:41.090Z] [INFO] Admin orders list fetched | {"count":2}
+[2025-12-28T20:34:41.555Z] [INFO] Admin orders list fetched | {"count":2}
+[2025-12-28T20:34:41.600Z] [INFO] Admin orders list fetched | {"count":2}
+[2025-12-28T20:34:41.718Z] [INFO] Admin orders list fetched | {"count":2}
+[2025-12-28T20:34:41.755Z] [INFO] Admin orders list fetched | {"count":2}
+[2025-12-28T20:34:41.895Z] [INFO] Admin orders list fetched | {"count":2}
+[2025-12-28T20:34:41.931Z] [INFO] Admin orders list fetched | {"count":2}
+[2025-12-28T20:48:15.679Z] [INFO] Admin orders list fetched | {"count":0}
+[2025-12-28T20:48:15.684Z] [INFO] Admin orders list fetched | {"count":0}
+[2025-12-28T20:48:16.312Z] [INFO] Admin orders list fetched | {"count":0}
+[2025-12-28T20:48:16.341Z] [INFO] Admin orders list fetched | {"count":0}
+[2025-12-28T20:48:16.851Z] [INFO] Admin orders list fetched | {"count":0}
+[2025-12-28T20:48:16.885Z] [INFO] Admin orders list fetched | {"count":0}
+[2025-12-28T20:48:17.016Z] [INFO] Admin orders list fetched | {"count":0}
+[2025-12-28T20:48:17.044Z] [INFO] Admin orders list fetched | {"count":0}
+[2025-12-28T20:48:17.205Z] [INFO] Admin orders list fetched | {"count":0}
+[2025-12-28T20:48:17.242Z] [INFO] Admin orders list fetched | {"count":0}
+[2025-12-28T20:48:17.372Z] [INFO] Admin orders list fetched | {"count":0}
+[2025-12-28T20:48:17.390Z] [INFO] Admin orders list fetched | {"count":0}
+[2025-12-28T20:48:32.344Z] [INFO] Order created | {"orderId":"cmjq7c0260002mn01ojdu9ixq","userId":"cmjq5s3j2003fs601h7ocmk5t","total":350000}
+[2025-12-28T20:48:41.950Z] [INFO] Admin orders list fetched | {"count":1}
+[2025-12-28T20:48:41.953Z] [INFO] Admin orders list fetched | {"count":1}
+[2025-12-28T20:48:44.207Z] [INFO] Admin order detail fetched | {"orderId":"cmjq7c0260002mn01ojdu9ixq"}
+[2025-12-28T20:48:46.088Z] [INFO] Admin orders list fetched | {"count":1}
+[2025-12-28T20:48:46.096Z] [INFO] Admin orders list fetched | {"count":1}

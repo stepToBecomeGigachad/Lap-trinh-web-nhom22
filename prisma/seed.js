@@ -1,4 +1,5 @@
 import { PrismaClient } from '@prisma/client';
+import { hashPassword } from '../src/lib/password.js';
 const prisma = new PrismaClient();
 
 async function main() {
@@ -143,13 +144,14 @@ async function main() {
   }
 
   // admin user demo
+  const adminPassword = process.env.ADMIN_PASSWORD || 'Test.123';
   await prisma.user.upsert({
     where: { email: 'admin@test.com' },
     update: { role: 'ADMIN' },
     create: {
       name: 'Admin',
       email: 'admin@test.com',
-      passwordHash: '$2a$10$1m19O6Tz0oU.ycEmIvTN3u3xZt9cP2reE6Qv0d0o7kRk1lGbkVw9y', // bcrypt for 'test.123' (placeholder)
+      passwordHash: hashPassword(adminPassword),
       role: 'ADMIN',
     },
   });
@@ -199,4 +201,3 @@ main().catch((e) => {
 }).finally(async () => {
   await prisma.$disconnect();
 });
-

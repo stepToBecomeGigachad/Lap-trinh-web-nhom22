@@ -2,7 +2,7 @@ import NextAuth from 'next-auth';
 import GoogleProvider from 'next-auth/providers/google';
 import CredentialsProvider from 'next-auth/providers/credentials';
 import prisma from './lib/prisma';
-import { verifyPassword } from './lib/password';
+import { hashPassword, verifyPassword } from './lib/password';
 
 export const { handlers, signIn, signOut, auth } = NextAuth({
     providers: [
@@ -26,18 +26,8 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
 
                 const email = credentials.email.toLowerCase().trim();
 
-                // Check hardcoded admin (development only)
-                const ADMIN_EMAIL = process.env.ADMIN_EMAIL || 'admin@test.com';
-                const ADMIN_PASS = process.env.ADMIN_PASSWORD || 'Test.123';
-
-                if (email === ADMIN_EMAIL.toLowerCase() && credentials.password === ADMIN_PASS) {
-                    return {
-                        id: 'admin',
-                        email: ADMIN_EMAIL,
-                        name: 'Admin',
-                        role: 'admin',
-                    };
-                }
+                const ADMIN_EMAIL = process.env.ADMIN_EMAIL;
+                const ADMIN_PASS = process.env.ADMIN_PASSWORD;
 
                 // Check database user
                 const user = await prisma.user.findUnique({
@@ -50,7 +40,17 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
 
                 const isValid = verifyPassword(credentials.password, user.passwordHash);
                 if (!isValid) {
-                    return null;
+                    const isAdminCredentials =
+                        ADMIN_EMAIL &&
+                        ADMIN_PASS &&
+                        email === ADMIN_EMAIL.toLowerCase() &&
+                        credentials.password === ADMIN_PASS;
+                    const isScryptHash = String(user.passwordHash || '').startsWith('scrypt:');
+                    if (!(isAdminCredentials && !isScryptHash)) {
+                        return null;
+                    }
+                    const upgradedHash = hashPassword(credentials.password);
+                    await prisma.user.update({ where: { id: user.id }, data: { passwordHash: upgradedHash, role: 'ADMIN' } });
                 }
 
                 return {

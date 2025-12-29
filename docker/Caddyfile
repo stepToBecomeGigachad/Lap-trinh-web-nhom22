@@ -1,0 +1,13 @@
+{
+  auto_https disable_redirects
+}
+
+https://localhost:3000 {
+  tls internal
+  reverse_proxy fe:3000
+}
+
+https://localhost:5000 {
+  tls internal
+  reverse_proxy be:5000
+}

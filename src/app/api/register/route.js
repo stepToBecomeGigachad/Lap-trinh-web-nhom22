@@ -1,8 +1,15 @@
 import { NextResponse } from 'next/server';
 import prisma from '../../../lib/prisma';
-import { createSession, sessionCookieName } from '../../../lib/auth';
+import {
+  accessTokenMaxAgeSeconds,
+  createSession,
+  refreshCookieName,
+  refreshTokenMaxAgeSeconds,
+  sessionCookieName,
+} from '../../../lib/auth';
 import { hashPassword } from '../../../lib/password';
 import { validatePassword, validateEmail } from '../../../middleware/passwordPolicy';
+import { createRefreshToken, storeRefreshToken } from '../../../lib/refreshTokens';
 
 export async function POST(request) {
   try {
@@ -42,13 +49,23 @@ export async function POST(request) {
     });
 
     const jwt = await createSession({ id: user.id, email: user.email, role: 'user', name: displayName });
+    const refresh = await createRefreshToken({ id: user.id, email: user.email, role: 'user', name: displayName });
+    await storeRefreshToken({ token: refresh.token, userId: user.id, expiresAt: refresh.expiresAt });
+
     const res = NextResponse.json({ ok: true });
     res.cookies.set(sessionCookieName(), jwt, {
       httpOnly: true,
       sameSite: 'lax',
       secure: process.env.NODE_ENV === 'production',
       path: '/',
-      maxAge: 60 * 60 * 8,
+      maxAge: accessTokenMaxAgeSeconds(),
+    });
+    res.cookies.set(refreshCookieName(), refresh.token, {
+      httpOnly: true,
+      sameSite: 'lax',
+      secure: process.env.NODE_ENV === 'production',
+      path: '/',
+      maxAge: refreshTokenMaxAgeSeconds(),
     });
     return res;
   } catch (e) {

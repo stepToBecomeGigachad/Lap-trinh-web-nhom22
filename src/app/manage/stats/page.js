@@ -32,7 +32,7 @@ function CustomTooltip({ active, payload, label }) {
       <div className="bg-white p-3 rounded-lg shadow-lg border border-gray-200">
         <p className="text-sm text-gray-600">{label}</p>
         <p className="text-lg font-semibold text-brand-600">
-          {vnd(payload[0].value * 1000)}
+          {vnd(payload[0].value)}
         </p>
       </div>
     );
@@ -114,7 +114,7 @@ export default function ManageStatsPage() {
                   <Calendar className="h-4 w-4" />
                   Hôm nay
                 </p>
-                <p className="text-3xl font-bold mt-2">{vnd((data?.today || 0) * 1000)}</p>
+                <p className="text-3xl font-bold mt-2">{vnd(data?.today || 0)}</p>
                 <p className="text-green-100 text-sm mt-2">
                   {todayVsWeek}% so với tuần này
                 </p>
@@ -134,7 +134,7 @@ export default function ManageStatsPage() {
                   <TrendingUp className="h-4 w-4" />
                   Tuần này
                 </p>
-                <p className="text-3xl font-bold mt-2">{vnd((data?.week || 0) * 1000)}</p>
+                <p className="text-3xl font-bold mt-2">{vnd(data?.week || 0)}</p>
                 <p className="text-blue-100 text-sm mt-2">
                   {weekVsMonth}% so với tháng này
                 </p>
@@ -154,7 +154,7 @@ export default function ManageStatsPage() {
                   <BarChart3 className="h-4 w-4" />
                   Tháng này
                 </p>
-                <p className="text-3xl font-bold mt-2">{vnd((data?.month || 0) * 1000)}</p>
+                <p className="text-3xl font-bold mt-2">{vnd(data?.month || 0)}</p>
                 <p className="text-purple-100 text-sm mt-2">
                   Tổng doanh thu tháng
                 </p>
@@ -235,7 +235,7 @@ export default function ManageStatsPage() {
                       <Cell key={`cell-${index}`} fill={entry.color} />
                     ))}
                   </Pie>
-                  <Tooltip formatter={(value) => vnd(value * 1000)} />
+                  <Tooltip formatter={(value) => vnd(value)} />
                 </PieChart>
               </ResponsiveContainer>
             </div>

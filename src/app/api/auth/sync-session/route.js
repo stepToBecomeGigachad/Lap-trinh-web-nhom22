@@ -1,6 +1,13 @@
 import { NextResponse } from 'next/server';
-import { createSession, sessionCookieName } from '../../../../lib/auth';
+import {
+    accessTokenMaxAgeSeconds,
+    createSession,
+    refreshCookieName,
+    refreshTokenMaxAgeSeconds,
+    sessionCookieName,
+} from '../../../../lib/auth';
 import prisma from '../../../../lib/prisma';
+import { createRefreshToken, storeRefreshToken } from '../../../../lib/refreshTokens';
 
 export async function POST(request) {
     try {
@@ -35,6 +42,13 @@ export async function POST(request) {
             name: name || '',
             role: userRole,
         });
+        const refresh = await createRefreshToken({
+            id: userId,
+            email,
+            name: name || '',
+            role: userRole,
+        });
+        await storeRefreshToken({ token: refresh.token, userId: userId || null, expiresAt: refresh.expiresAt });
 
         const res = NextResponse.json({ ok: true });
 
@@ -42,18 +56,25 @@ export async function POST(request) {
         res.cookies.set(sessionCookieName(), token, {
             httpOnly: true,
             sameSite: 'lax',
-            secure: false,
+            secure: process.env.NODE_ENV === 'production',
             path: '/',
-            maxAge: 60 * 60 * 8, // 8 hours
+            maxAge: accessTokenMaxAgeSeconds(),
+        });
+        res.cookies.set(refreshCookieName(), refresh.token, {
+            httpOnly: true,
+            sameSite: 'lax',
+            secure: process.env.NODE_ENV === 'production',
+            path: '/',
+            maxAge: refreshTokenMaxAgeSeconds(),
         });
 
         // Also set role cookie for middleware
         res.cookies.set('role', userRole, {
             httpOnly: false,
             sameSite: 'lax',
-            secure: false,
+            secure: process.env.NODE_ENV === 'production',
             path: '/',
-            maxAge: 60 * 60 * 8,
+            maxAge: accessTokenMaxAgeSeconds(),
         });
 
         return res;

@@ -1,32 +1,18 @@
 import { NextResponse } from 'next/server';
-import { jwtVerify } from 'jose';
-
-// Session config
-const SESSION_COOKIE = 'session';
-
-function getSecret() {
-  const secret = process.env.SESSION_SECRET || 'dev-insecure-secret-change-me';
-  return new TextEncoder().encode(secret);
-}
-
-async function parseSession(token) {
-  if (!token) return null;
-  try {
-    const { payload } = await jwtVerify(token, getSecret());
-    return payload;
-  } catch {
-    return null;
-  }
-}
+import { parseSession, sessionCookieName } from './lib/auth';
+import { addSecurityHeaders, checkCsrf, validateRequestBody } from './middleware/security';
 
 // Rate limiting store (in-memory, use Redis in production)
 const rateLimitStore = new Map();
 const RATE_LIMIT_WINDOW = 60 * 1000;
-const RATE_LIMITS = { DEFAULT: 100, LOGIN: 5, REGISTER: 3 };
+const RATE_LIMITS = { DEFAULT: 100, LOGIN: 5, REGISTER: 3, REFRESH: 10 };
+const APP_MODE = process.env.APP_MODE || 'web';
+const API_PROXY_URL = process.env.API_PROXY_URL || '';
 
 function getRateLimit(pathname) {
   if (pathname === '/api/login') return RATE_LIMITS.LOGIN;
   if (pathname === '/api/register') return RATE_LIMITS.REGISTER;
+  if (pathname === '/api/auth/refresh') return RATE_LIMITS.REFRESH;
   return RATE_LIMITS.DEFAULT;
 }
 
@@ -59,17 +45,48 @@ export async function middleware(request) {
 
   console.log('[MIDDLEWARE] Request:', pathname);
 
+  if (APP_MODE === 'api' && !pathname.startsWith('/api')) {
+    if (pathname === '/' && request.method === 'GET') {
+      return NextResponse.redirect(new URL('/api', request.url));
+    }
+    return NextResponse.json({ ok: false, error: 'Not found' }, { status: 404 });
+  }
+
+  if (APP_MODE === 'web' && API_PROXY_URL && pathname.startsWith('/api')) {
+    const target = new URL(API_PROXY_URL);
+    const url = new URL(request.url);
+    url.protocol = target.protocol;
+    url.host = target.host;
+    return NextResponse.rewrite(url);
+  }
+
   // Skip NextAuth routes (let NextAuth handle them)
   if (pathname.startsWith('/api/auth')) {
-    return NextResponse.next();
+    const customAuthRoutes = new Set([
+      '/api/auth/refresh',
+      '/api/auth/forgot-password',
+      '/api/auth/reset-password',
+      '/api/auth/sync-session',
+    ]);
+    if (!customAuthRoutes.has(pathname)) {
+      return NextResponse.next();
+    }
   }
 
   // 1. Rate limiting
   const rateLimitResponse = checkRateLimit(request);
   if (rateLimitResponse) return rateLimitResponse;
 
+  // 2. CSRF protection for state-changing requests
+  const csrfResponse = checkCsrf(request);
+  if (csrfResponse) return csrfResponse;
+
+  // 3. Basic SQLi detection for JSON payloads
+  const bodyValidation = await validateRequestBody(request);
+  if (bodyValidation) return bodyValidation;
+
   // 2. Get session from cookie
-  const token = request.cookies.get(SESSION_COOKIE)?.value;
+  const token = request.cookies.get(sessionCookieName())?.value;
   const session = await parseSession(token);
 
   console.log('[MIDDLEWARE] Session:', session ? { email: session.email, role: session.role } : null);
@@ -126,24 +143,16 @@ export async function middleware(request) {
 
   // 7. Add security headers
   const response = NextResponse.next();
-  response.headers.set('X-Frame-Options', 'SAMEORIGIN');
-  response.headers.set('X-Content-Type-Options', 'nosniff');
-  response.headers.set('X-XSS-Protection', '1; mode=block');
-  response.headers.set('Referrer-Policy', 'strict-origin-when-cross-origin');
+  addSecurityHeaders(response);
+  response.headers.set('Strict-Transport-Security', 'max-age=63072000; includeSubDomains; preload');
+  response.headers.set(
+    'Content-Security-Policy',
+    "default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval'; style-src 'self' 'unsafe-inline'; img-src 'self' data: https:; font-src 'self' data: https:; connect-src 'self' https:; frame-ancestors 'self'; base-uri 'self'; form-action 'self'"
+  );
 
   return response;
 }
 
 export const config = {
-  matcher: [
-    '/admin',
-    '/admin/:path*',
-    '/manage',
-    '/manage/:path*',
-    '/checkout',
-    '/orders/:path*',
-    '/personal',
-    '/account/:path*',
-    '/api/:path*',
-  ],
+  matcher: ['/((?!_next/static|_next/image|favicon.ico).*)'],
 };

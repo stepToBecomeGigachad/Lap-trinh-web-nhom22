@@ -304,7 +304,7 @@ export default function ManageCouponsPage() {
             </Card>
 
             {/* Create/Edit Modal */}
-            <Modal open={modalOpen} onClose={() => setModalOpen(false)} title={editId ? 'Sửa mã giảm giá' : 'Thêm mã giảm giá'}>
+            <Modal isOpen={modalOpen} onClose={() => setModalOpen(false)} title={editId ? 'Sửa mã giảm giá' : 'Thêm mã giảm giá'}>
                 <form onSubmit={handleSubmit} className="space-y-4">
                     {error && (
                         <div className="p-3 bg-red-50 text-red-600 rounded-lg text-sm">{error}</div>
@@ -412,7 +412,7 @@ export default function ManageCouponsPage() {
 
             {/* Delete Confirm Modal */}
             <ConfirmModal
-                open={!!deleteId}
+                isOpen={!!deleteId}
                 onClose={() => setDeleteId(null)}
                 onConfirm={handleDelete}
                 title="Xóa mã giảm giá?"

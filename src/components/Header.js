@@ -1,12 +1,14 @@
 import Link from "next/link";
 import dynamic from "next/dynamic";
 import AuthStatus from './AuthStatus';
+import CartSync from './CartSync';
 const AdminMenuItem = dynamic(() => import('./AdminMenuItem'), { ssr: false });
 import CartStatus from './CartStatus';
 
 export default function Header({ showHero = false }) {
   return (
     <header className="bg-gradient-to-r from-gray-900 via-gray-800 to-gray-900">
+      <CartSync />
       {/* Top bar */}
       <div className="border-b border-gray-700/50">
         <div className="max-w-7xl mx-auto px-4 py-3 flex items-center justify-between">

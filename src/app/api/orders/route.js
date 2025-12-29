@@ -29,13 +29,18 @@ export async function GET(request) {
     orderBy: { createdAt: 'desc' },
     select: { id: true, status: true, total: true, createdAt: true },
   });
-  return NextResponse.json({ ok: true, items: orders });
+  return NextResponse.json({ ok: true, items: orders, orders });
 }
 
 export async function POST(request) {
   try {
     const body = await request.json();
     const { items, shipping, note, couponCode, paymentMethod } = body || {};
+    const normalizedPaymentMethod = paymentMethod === 'momo' ? 'momo' : 'cod';
+    const paymentExpiresAt =
+      normalizedPaymentMethod === 'momo'
+        ? new Date(Date.now() + 30 * 60 * 1000)
+        : null;
 
     // === 1. VALIDATE ORDER ITEMS ===
     const itemsValidation = validateOrderItems(items);
@@ -126,6 +131,12 @@ export async function POST(request) {
     const priceBySlug = Object.fromEntries(dbProducts.map(p => [p.slug, p.salePrice ?? p.price]));
     const idBySlug = Object.fromEntries(dbProducts.map(p => [p.slug, p.id]));
 
+    // Determine if we should decrease stock now or after payment
+    // COD: decrease stock immediately (order confirmed)
+    // MoMo/Bank: decrease stock only after payment success
+    const shouldDecreaseStockNow = normalizedPaymentMethod === 'cod';
+    const initialStatus = normalizedPaymentMethod === 'cod' ? 'PENDING' : 'AWAITING_PAYMENT';
+
     const created = await prisma.$transaction(async (tx) => {
       // Double-check stock in transaction
       for (const it of items) {
@@ -142,7 +153,9 @@ export async function POST(request) {
       const order = await tx.order.create({
         data: {
           userId,
-          status: 'PENDING',
+          status: initialStatus,
+          paymentMethod: normalizedPaymentMethod,
+          paymentExpiresAt,
           total,
           discount: discountAmount,
           couponId,
@@ -163,20 +176,23 @@ export async function POST(request) {
         select: { id: true },
       });
 
-      // Decrease stock atomically
-      for (const it of items) {
-        await tx.product.update({
-          where: { id: idBySlug[it.slug] },
-          data: { stock: { decrement: it.quantity } },
-        });
-      }
+      // Only decrease stock for COD orders
+      // For MoMo/Bank, stock will be decreased when payment is confirmed
+      if (shouldDecreaseStockNow) {
+        for (const it of items) {
+          await tx.product.update({
+            where: { id: idBySlug[it.slug] },
+            data: { stock: { decrement: it.quantity } },
+          });
+        }
 
-      // Increment coupon usage
-      if (couponId) {
-        await tx.coupon.update({
-          where: { id: couponId },
-          data: { usedCount: { increment: 1 } },
-        });
+        // Increment coupon usage only for COD
+        if (couponId) {
+          await tx.coupon.update({
+            where: { id: couponId },
+            data: { usedCount: { increment: 1 } },
+          });
+        }
       }
 
       return order;
@@ -184,10 +200,13 @@ export async function POST(request) {
 
     logger.info('Order created', { orderId: created.id, userId, total });
 
+    if (userId && normalizedPaymentMethod === 'cod') {
+      await prisma.savedCart.deleteMany({ where: { userId } });
+    }
+
     return NextResponse.json({ ok: true, id: created.id, total });
   } catch (error) {
     logger.error('Order creation failed', { error: error.message });
     return NextResponse.json({ ok: false, error: error.message || 'Server error' }, { status: 500 });
   }
 }
-

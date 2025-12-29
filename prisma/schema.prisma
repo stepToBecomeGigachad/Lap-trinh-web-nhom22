@@ -20,6 +20,8 @@ model User {
   orders       Order[]
   reviews      Review[]
   resetTokens  PasswordResetToken[]
+  refreshTokens RefreshToken[]
+  savedCart    SavedCart?
 }
 
 model PasswordResetToken {
@@ -60,6 +62,7 @@ model Product {
   category    Category       @relation(fields: [categoryId], references: [id], onDelete: Restrict, onUpdate: Cascade)
   images      ProductImage[]
   orderItems  OrderItem[]
+  savedCartItems SavedCartItem[]
   reviews     Review[]
   @@index([categoryId])
   @@index([createdAt])
@@ -94,6 +97,8 @@ model Order {
   userId    String?
   user      User?       @relation(fields: [userId], references: [id], onDelete: SetNull, onUpdate: Cascade)
   status    String      @default("PENDING")
+  paymentMethod String  @default("cod")
+  paymentExpiresAt DateTime?
   total     Float       @default(0)
   discount  Float       @default(0)
   couponId  String?
@@ -106,6 +111,7 @@ model Order {
   address       String
   city          String
   district      String
+  note          String?
 
   items OrderItem[]
   @@index([userId])
@@ -140,4 +146,41 @@ model Coupon {
   createdAt   DateTime  @default(now())
   updatedAt   DateTime  @updatedAt
   orders      Order[]
+}
+
+model SavedCart {
+  id        String           @id @default(cuid())
+  userId    String           @unique
+  user      User             @relation(fields: [userId], references: [id], onDelete: Cascade)
+  items     SavedCartItem[]
+  createdAt DateTime         @default(now())
+  updatedAt DateTime         @updatedAt
+  expiresAt DateTime
+  @@index([expiresAt])
+}
+
+model SavedCartItem {
+  id          String   @id @default(cuid())
+  cartId      String
+  cart        SavedCart @relation(fields: [cartId], references: [id], onDelete: Cascade, onUpdate: Cascade)
+  productId   String
+  product     Product  @relation(fields: [productId], references: [id], onDelete: Restrict, onUpdate: Cascade)
+  quantity    Int
+  priceAtSave Float
+  createdAt   DateTime @default(now())
+  @@unique([cartId, productId])
+  @@index([cartId])
+  @@index([productId])
+}
+
+model RefreshToken {
+  id        String   @id @default(cuid())
+  userId    String?
+  user      User?    @relation(fields: [userId], references: [id], onDelete: Cascade)
+  tokenHash String   @unique
+  createdAt DateTime @default(now())
+  expiresAt DateTime
+  revokedAt DateTime?
+  @@index([userId])
+  @@index([expiresAt])
 }

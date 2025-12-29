@@ -3,7 +3,7 @@ import { useEffect, useState } from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
 import { useParams, useSearchParams } from 'next/navigation';
-import { formatPrice } from '../../../lib/utils';
+import { calculateShippingFee, formatPrice } from '../../../lib/utils';
 
 // Toast notification component
 function Toast({ message, type = 'success', onClose }) {
@@ -92,6 +92,14 @@ export default function OrderDetailPage() {
         cancelled: 'Đã hủy'
     };
 
+    const itemSubtotal = (order.items || []).reduce(
+        (sum, item) => sum + (item.price || 0) * (item.quantity || 0),
+        0
+    );
+    const totalQuantity = (order.items || []).reduce((sum, item) => sum + (item.quantity || 0), 0);
+    const shippingFee = totalQuantity ? calculateShippingFee(totalQuantity) : 0;
+    const discountAmount = Math.max(0, itemSubtotal + shippingFee - (order.total || 0));
+
     return (
         <div className="min-h-screen bg-gray-50">
             {toast && <Toast {...toast} onClose={() => setToast(null)} />}
@@ -130,23 +138,23 @@ export default function OrderDetailPage() {
                 <div className="bg-white rounded-2xl shadow-sm p-6">
                     <h2 className="text-lg font-bold text-gray-900 mb-4">Thông tin đơn hàng</h2>
                     <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-4">
-                        <div>
+                        <div className="min-w-0">
                             <div className="text-sm text-gray-500">Mã đơn hàng</div>
-                            <div className="font-semibold text-gray-900">#{orderId}</div>
+                            <div className="font-semibold text-gray-900 break-all">#{orderId}</div>
                         </div>
-                        <div>
+                        <div className="min-w-0">
                             <div className="text-sm text-gray-500">Ngày đặt</div>
                             <div className="font-semibold text-gray-900">
                                 {order.createdAt ? new Date(order.createdAt).toLocaleDateString('vi-VN') : '-'}
                             </div>
                         </div>
-                        <div>
+                        <div className="min-w-0">
                             <div className="text-sm text-gray-500">Phương thức thanh toán</div>
                             <div className="font-semibold text-gray-900">
                                 {order.paymentMethod === 'cod' ? 'Thanh toán khi nhận hàng' : 'Chuyển khoản'}
                             </div>
                         </div>
-                        <div>
+                        <div className="min-w-0">
                             <div className="text-sm text-gray-500">Tổng tiền</div>
                             <div className="font-bold text-blue-600 text-lg">{formatPrice(order.total)}</div>
                         </div>
@@ -203,11 +211,17 @@ export default function OrderDetailPage() {
                     <div className="mt-6 pt-4 border-t border-gray-200">
                         <div className="flex justify-between text-gray-600 mb-2">
                             <span>Tạm tính</span>
-                            <span>{formatPrice(order.total)}</span>
+                            <span>{formatPrice(itemSubtotal)}</span>
                         </div>
+                        {discountAmount > 0 && (
+                            <div className="flex justify-between text-green-600 mb-2">
+                                <span>Giảm giá</span>
+                                <span>-{formatPrice(discountAmount)}</span>
+                            </div>
+                        )}
                         <div className="flex justify-between text-gray-600 mb-2">
                             <span>Phí vận chuyển</span>
-                            <span className="text-green-600">Miễn phí</span>
+                            <span className="font-medium">{formatPrice(shippingFee)}</span>
                         </div>
                         <div className="flex justify-between text-xl font-bold text-gray-900 pt-2 border-t border-gray-200">
                             <span>Tổng cộng</span>

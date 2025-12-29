@@ -77,16 +77,33 @@ export default function ProductDetailPage() {
   const inStock = (p.stock ?? 0) > 0;
   const lowStock = (p.stock ?? 0) > 0 && (p.stock ?? 0) <= 5;
 
+  const cartImage = p.image || p.images?.[0]?.url || '/images/placeholder.jpg';
+
+  const normalizeQuantity = (value) => {
+    const numeric = Number(value);
+    const safe = Number.isFinite(numeric) ? numeric : 1;
+    return Math.min(p.stock || 1, Math.max(1, safe));
+  };
+
   const handleAddToCart = () => {
     if (!inStock) {
       setToast({ message: 'Sản phẩm đã hết hàng', type: 'error' });
       return;
     }
-    if (quantity > p.stock) {
+    const safeQty = normalizeQuantity(quantity);
+    if (safeQty > p.stock) {
       setToast({ message: `Chỉ còn ${p.stock} sản phẩm trong kho`, type: 'error' });
       return;
     }
-    addItem({ id: p.slug, slug: p.slug, name: p.name, image: p.image, price, quantity, stock: p.stock });
+    addItem({
+      id: p.slug,
+      slug: p.slug,
+      name: p.name,
+      image: cartImage,
+      price,
+      quantity: safeQty,
+      stock: p.stock
+    });
     setToast({ message: 'Đã thêm vào giỏ hàng!', type: 'success' });
   };
 
@@ -95,7 +112,15 @@ export default function ProductDetailPage() {
       setToast({ message: 'Sản phẩm đã hết hàng', type: 'error' });
       return;
     }
-    addItem({ id: p.slug, slug: p.slug, name: p.name, image: p.image, price, quantity, stock: p.stock });
+    addItem({
+      id: p.slug,
+      slug: p.slug,
+      name: p.name,
+      image: cartImage,
+      price,
+      quantity: normalizeQuantity(quantity),
+      stock: p.stock
+    });
     router.push('/checkout');
   };
 
@@ -262,6 +287,7 @@ export default function ProductDetailPage() {
                 {/* Action buttons */}
                 <div className="flex gap-3">
                   <button
+                    type="button"
                     onClick={handleAddToCart}
                     disabled={!inStock}
                     className={`flex-1 py-4 rounded-xl font-semibold text-lg transition-all ${inStock
@@ -272,6 +298,7 @@ export default function ProductDetailPage() {
                     🛒 Thêm vào giỏ
                   </button>
                   <button
+                    type="button"
                     onClick={handleBuyNow}
                     disabled={!inStock}
                     className={`flex-1 py-4 rounded-xl font-semibold text-lg transition-all ${inStock

@@ -3,7 +3,7 @@ import Image from 'next/image';
 import Link from 'next/link';
 import { useCartStore } from '../store/cart';
 import { useEffect, useState } from 'react';
-import { formatPrice } from '../lib/utils';
+import { calculateShippingFee, formatPrice } from '../lib/utils';
 
 export default function CartDrawer() {
   const { items, isOpen, setOpen, removeItem, updateQuantity, totalPrice } = useCartStore((s) => ({
@@ -16,6 +16,11 @@ export default function CartDrawer() {
   }));
 
   if (!isOpen) return null;
+
+  const totalQuantity = items.reduce((sum, item) => sum + (item.quantity || 0), 0);
+  const shippingFee = calculateShippingFee(totalQuantity);
+  const subtotal = totalPrice();
+  const finalTotal = subtotal + (items.length ? shippingFee : 0);
 
   return (
     <>
@@ -120,16 +125,16 @@ export default function CartDrawer() {
               {/* Summary */}
               <div className="space-y-2 mb-4">
                 <div className="flex justify-between text-sm text-gray-600">
-                  <span>Tạm tính ({items.reduce((s, i) => s + i.quantity, 0)} sản phẩm)</span>
-                  <span>{formatPrice(totalPrice())}</span>
+                  <span>Tạm tính ({totalQuantity} sản phẩm)</span>
+                  <span>{formatPrice(subtotal)}</span>
                 </div>
                 <div className="flex justify-between text-sm text-gray-600">
                   <span>Phí vận chuyển</span>
-                  <span className="text-green-600 font-medium">Miễn phí</span>
+                  <span className="font-medium">{formatPrice(items.length ? shippingFee : 0)}</span>
                 </div>
                 <div className="flex justify-between text-lg font-bold text-gray-900 pt-2 border-t border-gray-200">
                   <span>Tổng cộng</span>
-                  <span className="text-blue-600">{formatPrice(totalPrice())}</span>
+                  <span className="text-blue-600">{formatPrice(finalTotal)}</span>
                 </div>
               </div>
 
@@ -160,4 +165,3 @@ export default function CartDrawer() {
     </>
   );
 }
-

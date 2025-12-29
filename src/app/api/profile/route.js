@@ -1,5 +1,5 @@
 import { NextResponse } from 'next/server';
-import { parseSession, createSession, sessionCookieName } from '../../../lib/auth';
+import { accessTokenMaxAgeSeconds, parseSession, createSession, sessionCookieName } from '../../../lib/auth';
 import prisma from '../../../lib/prisma';
 
 export async function GET(request) {
@@ -53,7 +53,7 @@ export async function POST(request) {
       sameSite: 'lax',
       secure: false,
       path: '/',
-      maxAge: 60 * 60 * 8,
+      maxAge: accessTokenMaxAgeSeconds(),
     });
     return res;
   }

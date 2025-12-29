@@ -190,12 +190,6 @@ function LoginInner() {
                   )}
                 </button>
 
-                <div className="p-4 bg-blue-50 rounded-xl border border-blue-100 my-6">
-                  <p className="text-sm text-blue-700">
-                    <strong>Demo Admin:</strong> admin@test.com / Test.123
-                  </p>
-                </div>
-
                 <p className="text-gray-600">
                   Chưa có tài khoản? {' '}
                   <Link href="/register" className="text-blue-600 hover:text-blue-700 font-semibold">

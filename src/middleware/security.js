@@ -44,15 +44,29 @@ export function checkCsrf(request) {
 
     const origin = request.headers.get('origin');
     const host = request.headers.get('host');
+    const normalizeOrigin = (value) => value
+        .trim()
+        .replace(/^['"]|['"]$/g, '')
+        .replace(/\/$/, '');
+    const trustedOrigins = (process.env.CSRF_TRUSTED_ORIGINS || '')
+        .split(',')
+        .map(normalizeOrigin)
+        .filter(Boolean);
 
     // If no origin header, allow (same-origin requests may not have it)
     if (!origin) return null;
 
     try {
-        const originHost = new URL(origin).host;
+        const normalizedOrigin = normalizeOrigin(origin);
+        const originHost = new URL(normalizedOrigin).host;
 
-        // Block if origin doesn't match host
-        if (originHost !== host) {
+        const isTrustedOrigin =
+            originHost === host ||
+            trustedOrigins.includes(normalizedOrigin) ||
+            trustedOrigins.includes(originHost);
+
+        // Block if origin doesn't match host and isn't in allowlist
+        if (!isTrustedOrigin) {
             console.warn(`CSRF blocked: origin=${origin}, host=${host}`);
             return NextResponse.json(
                 { ok: false, error: 'Yêu cầu không hợp lệ' },
@@ -90,12 +104,15 @@ export function sanitizeString(str) {
 export function hasSqlInjection(str) {
     if (typeof str !== 'string') return false;
 
+    const suspiciousChars = /(--|#|\/\*|;|['"`=])/;
+    if (!suspiciousChars.test(str)) return false;
+
     const sqlPatterns = [
         /(\b(SELECT|INSERT|UPDATE|DELETE|DROP|UNION|ALTER|CREATE|TRUNCATE)\b)/i,
+        /(\bOR\b\s+['"\d].*=\s*['"\d])/i,
+        /(\bAND\b\s+['"\d].*=\s*['"\d])/i,
+        /(;\s*(SELECT|INSERT|UPDATE|DELETE|DROP|UNION|ALTER|CREATE|TRUNCATE)\b)/i,
         /(--|#|\/\*)/,
-        /(\bOR\b\s+\d+\s*=\s*\d+)/i,
-        /(\bAND\b\s+\d+\s*=\s*\d+)/i,
-        /(;\s*(SELECT|INSERT|UPDATE|DELETE|DROP))/i,
     ];
 
     return sqlPatterns.some(pattern => pattern.test(str));

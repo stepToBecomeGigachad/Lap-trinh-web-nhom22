@@ -2,7 +2,7 @@ import { NextResponse } from 'next/server';
 import prisma from '../../../../lib/prisma';
 import { parseSession, sessionCookieName } from '../../../../lib/auth';
 import { logger, logSecurityEvent } from '../../../../lib/logger';
-import { canAccessOrder, canModifyOrder, sanitizeOrderResponse } from '../../../../middleware/idor';
+import { canAccessOrder, canModifyOrder } from '../../../../middleware/idor';
 
 async function getUserIdFromSession(cookies) {
   const token = cookies.get(sessionCookieName())?.value;
@@ -20,13 +20,6 @@ export async function GET(request, { params }) {
   const { id } = params;
   const { userId, role } = await getUserIdFromSession(request.cookies);
 
-  // IDOR Protection: Check access rights
-  const accessCheck = await canAccessOrder(id, userId, role, prisma);
-  if (!accessCheck.allowed) {
-    logSecurityEvent(request, 'IDOR_ORDER_ACCESS_DENIED', { orderId: id, userId, attemptedRole: role });
-    return NextResponse.json({ ok: false, error: accessCheck.reason || 'Không có quyền truy cập' }, { status: 403 });
-  }
-
   const order = await prisma.order.findFirst({
     where: { id },
     include: {
@@ -40,6 +33,12 @@ export async function GET(request, { params }) {
 
   if (!order) return NextResponse.json({ ok: false, error: 'Not found' }, { status: 404 });
 
+  const session = { id: userId, role: role || 'user' };
+  if (!canAccessOrder(order, session)) {
+    logSecurityEvent(request, 'IDOR_ORDER_ACCESS_DENIED', { orderId: id, userId, attemptedRole: role });
+    return NextResponse.json({ ok: false, error: 'Không có quyền truy cập' }, { status: 403 });
+  }
+
   // Format and sanitize order response (remove sensitive data for non-admin)
   const formattedOrder = {
     id: order.id,
@@ -47,6 +46,7 @@ export async function GET(request, { params }) {
     total: order.total,
     createdAt: order.createdAt,
     paymentMethod: order.paymentMethod || 'cod',
+    paymentExpiresAt: order.paymentExpiresAt,
     shipping: order.shippingName ? {
       name: order.shippingName,
       phone: order.phone,
@@ -76,11 +76,9 @@ export async function POST(request, { params }) {
   const action = body?.action;
   const { userId, role } = await getUserIdFromSession(request.cookies);
 
-  // IDOR Protection: Check modify rights
-  const modifyCheck = await canModifyOrder(id, userId, role, action, prisma);
-  if (!modifyCheck.allowed) {
-    logSecurityEvent(request, 'IDOR_ORDER_MODIFY_DENIED', { orderId: id, userId, action, reason: modifyCheck.reason });
-    return NextResponse.json({ ok: false, error: modifyCheck.reason || 'Không có quyền thực hiện hành động này' }, { status: 403 });
+  if (String(role || '').toLowerCase() !== 'admin') {
+    logSecurityEvent(request, 'ORDER_MODIFY_BLOCKED', { orderId: id, userId, action, role });
+    return NextResponse.json({ ok: false, error: 'Không có quyền thực hiện hành động này' }, { status: 403 });
   }
 
   if (action === 'cancel') {
@@ -90,6 +88,12 @@ export async function POST(request, { params }) {
     });
 
     if (!order) return NextResponse.json({ ok: false, error: 'Đơn hàng không tồn tại' }, { status: 404 });
+
+    const session = { id: userId, role: role || 'user' };
+    if (!canModifyOrder(order, session)) {
+      logSecurityEvent(request, 'IDOR_ORDER_MODIFY_DENIED', { orderId: id, userId, action });
+      return NextResponse.json({ ok: false, error: 'Không có quyền thực hiện hành động này' }, { status: 403 });
+    }
 
     if (order.status !== 'PENDING') {
       return NextResponse.json({ ok: false, error: 'Chỉ có thể hủy đơn hàng đang chờ xử lý' }, { status: 400 });

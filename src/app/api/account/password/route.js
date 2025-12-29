@@ -15,14 +15,21 @@ export async function POST(request) {
   const user = await prisma.user.findUnique({ where: { email: sess.email } });
   if (!user) return NextResponse.json({ ok:false, error:'Not found' }, { status:404 });
 
-  // Allow admin backdoor password as a special-case fallback if hash type differs
-  const ADMIN_EMAIL = 'admin@test.com';
-  const ADMIN_PASS = 'test.123';
-  const ok = verifyPassword(currentPassword, user.passwordHash) || (user.email === ADMIN_EMAIL && currentPassword === ADMIN_PASS);
+  const ADMIN_EMAIL = process.env.ADMIN_EMAIL;
+  const ADMIN_PASS = process.env.ADMIN_PASSWORD;
+  const isScryptHash = String(user.passwordHash || '').startsWith('scrypt:');
+  const isAdminCredentials =
+    ADMIN_EMAIL &&
+    ADMIN_PASS &&
+    user.email.toLowerCase() === ADMIN_EMAIL.toLowerCase() &&
+    currentPassword === ADMIN_PASS;
+  const ok = verifyPassword(currentPassword, user.passwordHash) || (isAdminCredentials && !isScryptHash);
   if (!ok) return NextResponse.json({ ok:false, error:'Mật khẩu hiện tại không đúng' }, { status:403 });
 
   const passwordHash = hashPassword(newPassword);
-  await prisma.user.update({ where: { id: user.id }, data: { passwordHash } });
+  await prisma.$transaction([
+    prisma.user.update({ where: { id: user.id }, data: { passwordHash } }),
+    prisma.refreshToken.updateMany({ where: { userId: user.id }, data: { revokedAt: new Date() } }),
+  ]);
   return NextResponse.json({ ok:true });
 }
-

@@ -3,12 +3,16 @@ import prisma from '../../../../../lib/prisma';
 import { logger, logSecurityEvent } from '../../../../../lib/logger';
 
 const VALID_STATUSES = ['PENDING', 'PROCESSING', 'SHIPPED', 'DELIVERED', 'CANCELLED'];
+const UUID_RE = /^[a-f0-9-]{36}$/i;
+const CUID_RE = /^c[a-z0-9]{24}$/i;
+
+const isValidOrderId = (id) => typeof id === 'string' && (UUID_RE.test(id) || CUID_RE.test(id));
 
 export async function GET(_req, { params }) {
   const { id } = params;
 
-  // Validate ID format (UUID)
-  if (!id || !/^[a-f0-9-]{36}$/i.test(id)) {
+  // Accept Prisma cuid() and legacy UUIDs
+  if (!isValidOrderId(id)) {
     return NextResponse.json({ ok: false, error: 'Invalid order ID' }, { status: 400 });
   }
 
@@ -16,7 +20,18 @@ export async function GET(_req, { params }) {
     where: { id },
     include: {
       user: { select: { email: true, name: true } },
-      items: { include: { product: { select: { slug: true, name: true, stock: true } } } },
+      items: {
+        include: {
+          product: {
+            select: {
+              slug: true,
+              name: true,
+              stock: true,
+              images: { take: 1, select: { url: true } },
+            },
+          },
+        },
+      },
     },
   });
 
@@ -29,8 +44,8 @@ export async function GET(_req, { params }) {
 export async function PUT(request, { params }) {
   const { id } = params;
 
-  // Validate ID format
-  if (!id || !/^[a-f0-9-]{36}$/i.test(id)) {
+  // Accept Prisma cuid() and legacy UUIDs
+  if (!isValidOrderId(id)) {
     return NextResponse.json({ ok: false, error: 'Invalid order ID' }, { status: 400 });
   }
 

@@ -1,6 +1,6 @@
 import { NextResponse } from 'next/server';
 import prisma from '../../../../lib/prisma';
-import { parseSession, sessionCookieName } from '../../../../lib/auth';
+import { parseSession, refreshCookieName, sessionCookieName } from '../../../../lib/auth';
 import { verifyPassword } from '../../../../lib/password';
 
 export async function POST(request) {
@@ -17,10 +17,11 @@ export async function POST(request) {
     return NextResponse.json({ ok:false, error:'Invalid password' }, { status:403 });
   }
 
+  await prisma.refreshToken.deleteMany({ where: { userId: user.id } });
   await prisma.user.delete({ where: { id: user.id } });
   const res = NextResponse.json({ ok:true });
   // Clear session cookie
   res.cookies.set(sessionCookieName(), '', { httpOnly:true, path:'/', maxAge:0 });
+  res.cookies.set(refreshCookieName(), '', { httpOnly:true, path:'/', maxAge:0 });
   return res;
 }
-
